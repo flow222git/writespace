@@ -618,6 +618,61 @@ textarea:focus-visible {
   padding: 0 28px;
 }
 
+.landing-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.secondary-button,
+.record-button,
+.mini-button {
+  min-height: 42px;
+  border: 1px solid rgba(120, 150, 132, 0.22);
+  border-radius: 999px;
+  color: #59645d;
+  font-weight: 700;
+  background: rgba(255, 253, 248, 0.68);
+  box-shadow: 0 10px 20px rgba(120, 150, 132, 0.1);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.secondary-button {
+  padding: 0 24px;
+}
+
+.record-button {
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.mini-button {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+  box-shadow: none;
+}
+
+.secondary-button:hover,
+.record-button:hover,
+.mini-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(120, 150, 132, 0.34);
+  background: rgba(231, 240, 233, 0.82);
+}
+
+.mini-button.primary {
+  color: #ffffff;
+  border-color: rgba(120, 150, 132, 0.26);
+  background: #7f9d8e;
+}
+
+.mini-button.danger:hover {
+  border-color: rgba(196, 135, 129, 0.3);
+  background: rgba(248, 233, 227, 0.86);
+}
+
 .start-button:hover,
 .send-button:hover,
 .back-button:hover {
@@ -1077,6 +1132,388 @@ body.is-summary .chat-log {
   text-align: right;
 }
 
+body.records-open {
+  overflow: hidden;
+}
+
+.records-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: stretch end;
+}
+
+.records-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(60, 65, 61, 0.18);
+  backdrop-filter: blur(4px);
+}
+
+.records-drawer {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(560px, calc(100vw - 24px));
+  height: calc(100vh - 24px);
+  margin: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(110, 124, 113, 0.16);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(90deg, transparent 0 30px, rgba(196, 135, 129, 0.08) 30px 31px, transparent 31px 100%),
+    repeating-linear-gradient(to bottom, rgba(255, 253, 248, 0.98) 0 40px, rgba(110, 124, 113, 0.055) 40px 41px),
+    var(--paper);
+  box-shadow: 0 28px 80px rgba(60, 65, 61, 0.18);
+  animation: recordsIn 220ms ease both;
+}
+
+@keyframes recordsIn {
+  from {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.records-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 24px 18px 42px;
+  border-bottom: 1px solid rgba(110, 124, 113, 0.1);
+  background: rgba(255, 253, 248, 0.58);
+}
+
+.records-kicker {
+  margin: 0 0 6px;
+  color: var(--moss);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.records-header h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 500;
+}
+
+.records-content {
+  min-height: 0;
+  padding: 18px 18px 24px 42px;
+  overflow: auto;
+}
+
+.records-finder {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.records-search {
+  display: block;
+}
+
+.records-search input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid rgba(110, 124, 113, 0.14);
+  border-radius: 999px;
+  padding: 0 18px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  background: rgba(255, 253, 248, 0.78);
+  box-shadow: 0 8px 18px rgba(72, 78, 72, 0.045);
+}
+
+.records-search input::placeholder {
+  color: #9aa096;
+}
+
+.records-search input:focus {
+  outline: none;
+  border-color: rgba(120, 150, 132, 0.42);
+  box-shadow: 0 0 0 3px rgba(120, 150, 132, 0.1);
+}
+
+.records-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.records-calendar {
+  padding: 14px;
+  border: 1px solid rgba(110, 124, 113, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 253, 248, 0.58);
+  box-shadow: 0 10px 22px rgba(72, 78, 72, 0.04);
+}
+
+.calendar-nav {
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.calendar-nav strong {
+  text-align: center;
+  color: #4f5878;
+  font-size: 17px;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendar-weekdays {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.calendar-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: 1px solid rgba(110, 124, 113, 0.1);
+  border-radius: var(--radius);
+  color: #5c645d;
+  background: rgba(255, 253, 248, 0.62);
+  box-shadow: none;
+  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+}
+
+.calendar-day span {
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.calendar-day small {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 850;
+  background: #8fae9b;
+}
+
+.calendar-day:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(120, 150, 132, 0.28);
+  background: rgba(231, 240, 233, 0.76);
+}
+
+.calendar-day.has-record {
+  border-color: rgba(120, 150, 132, 0.26);
+  background: rgba(231, 240, 233, 0.76);
+}
+
+.calendar-day.is-selected {
+  border-color: rgba(79, 88, 120, 0.3);
+  color: #ffffff;
+  background: #829b8d;
+}
+
+.calendar-day.is-selected small {
+  color: #4f5878;
+  background: rgba(255, 253, 248, 0.88);
+}
+
+.calendar-day.is-today::before {
+  position: absolute;
+  top: 5px;
+  width: 5px;
+  height: 5px;
+  content: "";
+  border-radius: 50%;
+  background: #d2a49e;
+}
+
+.calendar-day.is-outside {
+  opacity: 0.28;
+}
+
+.calendar-day:disabled {
+  cursor: default;
+}
+
+.records-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 10px;
+  color: #59645d;
+}
+
+.records-result-head strong {
+  font-size: 15px;
+}
+
+.records-result-head span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.records-empty {
+  display: grid;
+  gap: 8px;
+  padding: 34px 20px;
+  border: 1px solid rgba(110, 124, 113, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 253, 248, 0.54);
+}
+
+.records-empty.compact {
+  padding: 22px 18px;
+}
+
+.records-empty p {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.records-empty span {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.records-list {
+  display: grid;
+  gap: 12px;
+}
+
+.record-item {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(110, 124, 113, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 253, 248, 0.68);
+  box-shadow: 0 10px 22px rgba(72, 78, 72, 0.045);
+}
+
+.record-main {
+  display: grid;
+  gap: 5px;
+}
+
+.record-main time,
+.record-detail-head time {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.record-main h3,
+.record-detail-head h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.record-main p {
+  margin: 0;
+  color: #626961;
+  line-height: 1.68;
+}
+
+.record-actions,
+.records-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.records-toolbar {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.record-detail {
+  display: grid;
+  gap: 14px;
+}
+
+.record-detail-head {
+  display: grid;
+  gap: 4px;
+  padding: 0 2px;
+}
+
+.record-report .report {
+  gap: 8px;
+}
+
+.record-report .report h3 {
+  font-size: 24px;
+}
+
+.record-report .report-section {
+  padding: 10px 12px;
+}
+
+.record-editor {
+  display: grid;
+  gap: 14px;
+}
+
+.record-field {
+  display: grid;
+  gap: 7px;
+}
+
+.record-field span {
+  color: #4f5878;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.record-field small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.record-field textarea {
+  min-height: 112px;
+  max-height: 220px;
+  padding: 14px 16px;
+  font-size: 16px;
+  line-height: 1.75;
+  background:
+    repeating-linear-gradient(to bottom, rgba(255, 253, 248, 0.98) 0 34px, rgba(110, 124, 113, 0.06) 34px 35px),
+    var(--paper);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1137,6 +1574,15 @@ body.is-summary .chat-log {
     height: 58vw;
   }
 
+  .landing-actions {
+    width: 100%;
+  }
+
+  .landing-actions .start-button,
+  .landing-actions .secondary-button {
+    flex: 1 1 150px;
+  }
+
   .writing-page {
     padding: 20px 14px 18px;
   }
@@ -1148,6 +1594,13 @@ body.is-summary .chat-log {
 
   .global-actions {
     justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .record-button {
+    min-height: 40px;
+    padding: 0 12px;
+    font-size: 13px;
   }
 
   .safety-strip {
@@ -1228,5 +1681,50 @@ body.is-summary .chat-log {
 
   .space-footer {
     text-align: left;
+  }
+
+  .records-panel {
+    place-items: end stretch;
+  }
+
+  .records-drawer {
+    width: calc(100vw - 16px);
+    height: min(88vh, 720px);
+    margin: 8px;
+  }
+
+  .records-header {
+    padding: 18px 16px 14px 30px;
+  }
+
+  .records-content {
+    padding: 14px 14px 20px 30px;
+  }
+
+  .records-calendar {
+    padding: 10px;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .calendar-day {
+    min-height: 38px;
+  }
+
+  .calendar-day span {
+    font-size: 13px;
+  }
+
+  .record-actions,
+  .records-toolbar {
+    justify-content: flex-start;
+  }
+
+  .record-field textarea {
+    min-height: 96px;
+    font-size: 15px;
   }
 }
