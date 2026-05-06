@@ -67,10 +67,22 @@
           </p>
         </section>
 
-        <section class="writing-sheet">
+        <section class="writing-sheet view-panel" id="guidePanel">
           <div class="sheet-mark" aria-hidden="true">位</div>
           <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <div class="guide-actions">
+            <button class="back-button" id="guidePrevButton" type="button">
+              <span aria-hidden="true">←</span>
+              <span>上一步</span>
+            </button>
+            <button class="send-button guide-write-button" id="guideToWriteButton" type="button">
+              <span>開始書寫</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </section>
 
+        <section class="writing-pad view-panel" id="writePanel">
           <div class="composer-wrap">
             <div class="starter-row" id="starterRow" aria-label="句子開頭"></div>
             <form class="composer" id="messageForm">
@@ -85,7 +97,7 @@
                   <span aria-hidden="true">←</span>
                   <span>上一步</span>
                 </button>
-                <button class="send-button" id="sendButton" type="submit">
+                <button class="send-button" id="sendButton" type="button">
                   <span id="sendButtonText">下一步</span>
                   <span aria-hidden="true">→</span>
                 </button>

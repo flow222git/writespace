@@ -214,6 +214,10 @@ const pagePrompt = document.querySelector("#pagePrompt");
 const sendButtonText = document.querySelector("#sendButtonText");
 const prevButton = document.querySelector("#prevButton");
 const sendButton = document.querySelector("#sendButton");
+const guidePanel = document.querySelector("#guidePanel");
+const writePanel = document.querySelector("#writePanel");
+const guideToWriteButton = document.querySelector("#guideToWriteButton");
+const guidePrevButton = document.querySelector("#guidePrevButton");
 
 let state = loadState();
 let isSending = false;
@@ -231,6 +235,7 @@ function createInitialState() {
     sessionId: makeId("session"),
     createdAt: now,
     started: false,
+    view: "guide",
     activeStep: "topic",
     completed: false,
     summaryMarkdown: "",
@@ -264,6 +269,7 @@ function loadState() {
       ...createInitialState(),
       ...parsed,
       started: parsed.started ?? true,
+      view: parsed.view || "guide",
       entries: { ...emptyEntries, ...(parsed.entries || {}) },
       analysis: {
         emotions: [],
@@ -334,34 +340,60 @@ function clearDownstreamFrom(stepId) {
 }
 
 function canGoPrevious() {
-  return state.started && !state.completed && activeStepIndex() > 0 && state.activeStep !== "summary";
+  if (!state.started || state.completed || state.activeStep === "summary") return false;
+  return state.view === "write" || activeStepIndex() > 0;
 }
 
 function goPreviousStep() {
   if (!canGoPrevious() || isSending) return;
   saveDraftToEntry();
+
+  if (state.view === "write") {
+    state.view = "guide";
+    render();
+    scrollToGuide();
+    return;
+  }
+
   const previous = steps[activeStepIndex() - 1];
   if (!previous) return;
   state.completed = false;
   state.summaryMarkdown = "";
   setStep(previous.id);
+  state.view = "write";
   fillInputFromEntry();
   render();
-  scrollToGuide();
+  scrollToWrite();
 }
 
 function scrollToGuide() {
   blurActiveElement();
-  if (messageInput) messageInput.disabled = true;
+  scrollToPanel(guidePanel || chatLog || writingPage);
+}
 
+function scrollToWrite() {
+  blurActiveElement();
+  scrollToPanel(writePanel || writingPage);
+}
+
+function scrollToPanel(panel) {
+  if (messageInput) messageInput.disabled = true;
   const resetScroll = () => {
     blurActiveElement();
-    chatLog.scrollTop = 0;
-    const target = chatLog.querySelector(".message") || chatLog || writingPage;
-    if (target && typeof target.scrollIntoView === "function") {
+    if (chatLog) chatLog.scrollTop = 0;
+    const target = panel || writingPage;
+    if (target && typeof target.getBoundingClientRect === "function") {
+      const rect = target.getBoundingClientRect();
+      const top = Math.max(0, rect.top + window.pageYOffset - 12);
+      if (typeof window.scrollTo === "function") {
+        window.scrollTo({ top, left: 0, behavior: "auto" });
+      }
+      if (document.documentElement) document.documentElement.scrollTop = top;
+      if (document.body) document.body.scrollTop = top;
+    } else if (target && typeof target.scrollIntoView === "function") {
       target.scrollIntoView({ behavior: "auto", block: "start" });
     }
-    if (messageInput) messageInput.disabled = state.completed || isSending;
+    if (messageInput) messageInput.disabled = state.view !== "write" || state.completed || isSending;
   };
 
   requestAnimationFrame(() => {
@@ -370,6 +402,7 @@ function scrollToGuide() {
   });
   window.setTimeout(resetScroll, 80);
   window.setTimeout(resetScroll, 220);
+  window.setTimeout(resetScroll, 420);
 }
 
 function blurActiveElement() {
@@ -378,6 +411,8 @@ function blurActiveElement() {
   if (messageInput && typeof messageInput.blur === "function") messageInput.blur();
   if (sendButton && typeof sendButton.blur === "function") sendButton.blur();
   if (prevButton && typeof prevButton.blur === "function") prevButton.blur();
+  if (guideToWriteButton && typeof guideToWriteButton.blur === "function") guideToWriteButton.blur();
+  if (guidePrevButton && typeof guidePrevButton.blur === "function") guidePrevButton.blur();
 }
 
 function unique(values) {
@@ -813,25 +848,40 @@ function escapeHtml(value) {
 
 function render() {
   const activeCopy = pageCopy[state.activeStep] || pageCopy.topic;
+  const isSummary = state.completed || state.activeStep === "summary";
+  const isGuideView = state.started && (state.view === "guide" || isSummary);
+  const isWriteView = state.started && state.view === "write" && !isSummary;
   document.body.classList.toggle("is-landing", !state.started);
-  document.body.classList.toggle("is-summary", state.completed || state.activeStep === "summary");
+  document.body.classList.toggle("is-summary", isSummary);
+  document.body.classList.toggle("is-guide-view", isGuideView);
+  document.body.classList.toggle("is-write-view", isWriteView);
   if (landingPage) landingPage.hidden = state.started;
   if (writingPage) writingPage.hidden = !state.started;
+  if (guidePanel) guidePanel.hidden = !isGuideView;
+  if (writePanel) writePanel.hidden = !isWriteView;
   if (pageTitle) pageTitle.textContent = activeCopy.title;
   if (pagePrompt) pagePrompt.textContent = activeCopy.prompt;
   if (sendButtonText) sendButtonText.textContent = activeCopy.action;
   renderSteps();
   renderStarters();
   renderMessages();
-  messageInput.disabled = state.completed || isSending;
-  if (sendButton) sendButton.disabled = state.completed || isSending;
+  messageInput.disabled = !isWriteView || isSending;
+  if (sendButton) sendButton.disabled = !isWriteView || isSending;
   if (prevButton) {
     prevButton.hidden = !canGoPrevious();
     prevButton.disabled = isSending;
   }
+  if (guideToWriteButton) {
+    guideToWriteButton.hidden = isSummary;
+    guideToWriteButton.disabled = isSending;
+  }
+  if (guidePrevButton) {
+    guidePrevButton.hidden = isSummary || activeStepIndex() <= 0;
+    guidePrevButton.disabled = isSending;
+  }
   if (isSending) {
     messageInput.placeholder = "正在整理下一頁引導...";
-  } else if (state.completed) {
+  } else if (isSummary) {
     messageInput.placeholder = "這一輪已完成。可以下載紀錄，或重新開始。";
   } else {
     messageInput.placeholder = "在這裡寫下現在浮現的話...";
@@ -839,10 +889,10 @@ function render() {
   saveState();
 }
 
-messageForm.addEventListener("submit", async (event) => {
+async function submitCurrentStep(event) {
   event.preventDefault();
   const text = messageInput.value.trim();
-  if (!state.started || !text || state.completed || isSending) return;
+  if (!state.started || state.view !== "write" || !text || state.completed || isSending) return;
 
   clearDownstreamFrom(state.activeStep);
   addMessage({
@@ -858,10 +908,31 @@ messageForm.addEventListener("submit", async (event) => {
     await handleStep(text);
   } finally {
     isSending = false;
+    state.view = "guide";
     render();
     scrollToGuide();
   }
-});
+}
+
+messageForm.addEventListener("submit", submitCurrentStep);
+
+if (sendButton) {
+  sendButton.addEventListener("pointerdown", (event) => event.preventDefault());
+  sendButton.addEventListener("mousedown", (event) => event.preventDefault());
+  sendButton.addEventListener("click", submitCurrentStep);
+}
+
+if (guideToWriteButton) {
+  guideToWriteButton.addEventListener("pointerdown", (event) => event.preventDefault());
+  guideToWriteButton.addEventListener("mousedown", (event) => event.preventDefault());
+  guideToWriteButton.addEventListener("click", () => {
+    if (state.completed || isSending) return;
+    state.view = "write";
+    fillInputFromEntry();
+    render();
+    scrollToWrite();
+  });
+}
 
 starterRow.addEventListener("click", (event) => {
   const chip = event.target.closest(".starter-chip");
@@ -872,13 +943,22 @@ starterRow.addEventListener("click", (event) => {
 });
 
 if (prevButton) {
+  prevButton.addEventListener("pointerdown", (event) => event.preventDefault());
+  prevButton.addEventListener("mousedown", (event) => event.preventDefault());
   prevButton.addEventListener("click", goPreviousStep);
+}
+
+if (guidePrevButton) {
+  guidePrevButton.addEventListener("pointerdown", (event) => event.preventDefault());
+  guidePrevButton.addEventListener("mousedown", (event) => event.preventDefault());
+  guidePrevButton.addEventListener("click", goPreviousStep);
 }
 
 resetButton.addEventListener("click", () => {
   const confirmed = window.confirm("要清除目前這一輪練習，重新開始嗎？");
   if (!confirmed) return;
   state = createInitialState();
+  state.view = "guide";
   isSending = false;
   render();
   scrollToGuide();
@@ -913,6 +993,7 @@ copySummaryButton.addEventListener("click", async () => {
 if (startButton) {
   startButton.addEventListener("click", () => {
     state.started = true;
+    state.view = "guide";
     fillInputFromEntry();
     render();
     scrollToGuide();
