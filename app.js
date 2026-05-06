@@ -352,13 +352,24 @@ function goPreviousStep() {
 
 function scrollToGuide() {
   blurActiveElement();
-  requestAnimationFrame(() => {
+  if (messageInput) messageInput.disabled = true;
+
+  const resetScroll = () => {
+    blurActiveElement();
     chatLog.scrollTop = 0;
-    const target = document.querySelector(".writing-sheet") || chatLog || writingPage;
+    const target = chatLog.querySelector(".message") || chatLog || writingPage;
     if (target && typeof target.scrollIntoView === "function") {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      target.scrollIntoView({ behavior: "auto", block: "start" });
     }
+    if (messageInput) messageInput.disabled = state.completed || isSending;
+  };
+
+  requestAnimationFrame(() => {
+    resetScroll();
+    requestAnimationFrame(resetScroll);
   });
+  window.setTimeout(resetScroll, 80);
+  window.setTimeout(resetScroll, 220);
 }
 
 function blurActiveElement() {
