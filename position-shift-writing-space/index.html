@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>心理位移書寫空間</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="fractal-field" aria-hidden="true">
+      <span class="fractal-stem stem-a"></span>
+      <span class="fractal-stem stem-b"></span>
+      <span class="fractal-stem stem-c"></span>
+      <span class="fractal-orbit orbit-a"><i></i><i></i><i></i></span>
+      <span class="fractal-orbit orbit-b"><i></i><i></i><i></i></span>
+      <span class="leaf-sprig sprig-a"><i></i><i></i><i></i><i></i></span>
+      <span class="leaf-sprig sprig-b"><i></i><i></i><i></i><i></i></span>
+      <span class="flower-cluster flower-a"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="flower-cluster flower-b"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="butterfly butterfly-a"><i></i><i></i><i></i><i></i></span>
+      <span class="butterfly butterfly-b"><i></i><i></i><i></i><i></i></span>
+      <span class="soft-bird bird-a"><i></i><i></i><i></i></span>
+      <span class="tiny-snail snail-a"><i></i><i></i></span>
+      <span class="petal petal-a"></span>
+      <span class="petal petal-b"></span>
+      <span class="petal petal-c"></span>
+      <span class="petal petal-d"></span>
+    </div>
+
+    <main class="space-shell">
+      <section class="landing-page" id="landingPage" aria-labelledby="landingTitle">
+        <p class="landing-kicker">psychological position shift</p>
+        <h1 id="landingTitle">心理位移書寫空間</h1>
+        <p class="landing-words">位移　切換　空間</p>
+        <button class="start-button" id="startButton" type="button">進入書寫</button>
+      </section>
+
+      <section class="writing-page" id="writingPage" aria-label="心理位移書寫">
+        <header class="space-header">
+          <div>
+            <p class="space-kicker" id="currentPosition">選擇主題</p>
+            <h2 id="pageTitle">選一件現在願意靠近的事</h2>
+            <p class="page-prompt" id="pagePrompt">不用選最嚴重的事，選一件你現在願意稍微靠近的事就好。</p>
+          </div>
+
+          <div class="quiet-actions" aria-label="工具操作">
+            <button class="icon-button" id="copySummaryButton" type="button" title="複製整理" aria-label="複製整理">
+              <span aria-hidden="true">⧉</span>
+            </button>
+            <button class="icon-button" id="downloadButton" type="button" title="下載紀錄" aria-label="下載紀錄">
+              <span aria-hidden="true">↓</span>
+            </button>
+            <button class="icon-button danger-lite" id="resetButton" type="button" title="重新開始" aria-label="重新開始">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="progress-ribbon" aria-hidden="true">
+          <span class="progress-fill" id="progressFill"></span>
+        </div>
+
+        <section class="safety-strip" aria-label="安全提醒">
+          <div class="safety-icon" aria-hidden="true">!</div>
+          <p>
+            如果你正處在強烈危機、想傷害自己或他人的狀態，請先暫停練習，立刻聯絡可信任的人、當地緊急服務或專業心理 / 醫療資源。
+          </p>
+        </section>
+
+        <section class="writing-sheet">
+          <div class="sheet-mark" aria-hidden="true">位</div>
+          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+
+          <div class="composer-wrap">
+            <div class="starter-row" id="starterRow" aria-label="句子開頭"></div>
+            <form class="composer" id="messageForm">
+              <label class="sr-only" for="messageInput">輸入你的回應</label>
+              <textarea
+                id="messageInput"
+                rows="6"
+                placeholder="在這裡慢慢寫下來..."
+              ></textarea>
+              <div class="flow-actions">
+                <button class="back-button" id="prevButton" type="button">
+                  <span aria-hidden="true">←</span>
+                  <span>上一步</span>
+                </button>
+                <button class="send-button" id="sendButton" type="submit">
+                  <span id="sendButtonText">下一步</span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <footer class="space-footer">
+          <p>內容只保存在這個瀏覽器，可以下載成 Markdown 紀錄。</p>
+          <ol class="sr-only" id="stepList"></ol>
+        </footer>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
