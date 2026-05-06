@@ -351,12 +351,22 @@ function goPreviousStep() {
 }
 
 function scrollToGuide() {
+  blurActiveElement();
   requestAnimationFrame(() => {
     chatLog.scrollTop = 0;
-    if (typeof chatLog.scrollIntoView === "function") {
-      chatLog.scrollIntoView({ behavior: "smooth", block: "start" });
+    const target = document.querySelector(".writing-sheet") || chatLog || writingPage;
+    if (target && typeof target.scrollIntoView === "function") {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
+}
+
+function blurActiveElement() {
+  const active = document.activeElement;
+  if (active && typeof active.blur === "function") active.blur();
+  if (messageInput && typeof messageInput.blur === "function") messageInput.blur();
+  if (sendButton && typeof sendButton.blur === "function") sendButton.blur();
+  if (prevButton && typeof prevButton.blur === "function") prevButton.blur();
 }
 
 function unique(values) {
