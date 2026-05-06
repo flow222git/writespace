@@ -36,23 +36,23 @@
       </section>
 
       <section class="writing-page" id="writingPage" aria-label="心理位移書寫">
+        <div class="global-actions" aria-label="工具操作">
+          <button class="icon-button" id="copySummaryButton" type="button" title="複製整理" aria-label="複製整理">
+            <span aria-hidden="true">⧉</span>
+          </button>
+          <button class="icon-button" id="downloadButton" type="button" title="下載紀錄" aria-label="下載紀錄">
+            <span aria-hidden="true">↓</span>
+          </button>
+          <button class="icon-button danger-lite" id="resetButton" type="button" title="重新開始" aria-label="重新開始">
+            <span aria-hidden="true">↺</span>
+          </button>
+        </div>
+
         <header class="space-header">
           <div>
             <p class="space-kicker" id="currentPosition">選擇主題</p>
             <h2 id="pageTitle">選一件現在願意靠近的事</h2>
             <p class="page-prompt" id="pagePrompt">不用選最嚴重的事，選一件你現在願意稍微靠近的事就好。</p>
-          </div>
-
-          <div class="quiet-actions" aria-label="工具操作">
-            <button class="icon-button" id="copySummaryButton" type="button" title="複製整理" aria-label="複製整理">
-              <span aria-hidden="true">⧉</span>
-            </button>
-            <button class="icon-button" id="downloadButton" type="button" title="下載紀錄" aria-label="下載紀錄">
-              <span aria-hidden="true">↓</span>
-            </button>
-            <button class="icon-button danger-lite" id="resetButton" type="button" title="重新開始" aria-label="重新開始">
-              <span aria-hidden="true">↺</span>
-            </button>
           </div>
         </header>
 
@@ -68,7 +68,6 @@
         </section>
 
         <section class="writing-sheet view-panel" id="guidePanel">
-          <div class="sheet-mark" aria-hidden="true">位</div>
           <div class="chat-log" id="chatLog" aria-live="polite"></div>
           <div class="guide-actions">
             <button class="back-button" id="guidePrevButton" type="button">

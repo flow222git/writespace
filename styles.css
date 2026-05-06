@@ -570,16 +570,16 @@ textarea:focus-visible {
 .space-kicker {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  padding: 6px 14px;
-  border: 1px solid rgba(120, 150, 132, 0.24);
-  border-radius: 999px;
-  color: #53695d;
-  font-size: 15px;
-  font-weight: 750;
+  min-height: 48px;
+  padding: 10px 20px;
+  border: 1px solid rgba(157, 167, 203, 0.34);
+  border-radius: 18px;
+  color: #4f5878;
+  font-size: clamp(19px, 2.2vw, 25px);
+  font-weight: 800;
   line-height: 1;
-  background: rgba(231, 240, 233, 0.76);
-  box-shadow: 0 8px 18px rgba(120, 150, 132, 0.12);
+  background: linear-gradient(135deg, rgba(239, 237, 248, 0.96), rgba(223, 239, 244, 0.82));
+  box-shadow: 0 10px 24px rgba(157, 167, 203, 0.2);
   text-transform: none;
 }
 
@@ -630,10 +630,19 @@ textarea:focus-visible {
 
 .writing-page {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-  gap: 18px;
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+  gap: 14px;
   min-height: 100vh;
-  padding: 32px clamp(18px, 4vw, 58px) 28px;
+  padding: 18px clamp(18px, 4vw, 58px) 28px;
+}
+
+.global-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 1120px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .space-header {
@@ -661,12 +670,6 @@ textarea:focus-visible {
   color: var(--muted);
   font-size: 15px;
   line-height: 1.9;
-}
-
-.quiet-actions {
-  display: flex;
-  gap: 8px;
-  padding-top: 4px;
 }
 
 .icon-button {
@@ -782,23 +785,6 @@ textarea:focus-visible {
   }
 }
 
-.sheet-mark {
-  position: absolute;
-  top: 24px;
-  right: 26px;
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius);
-  color: rgba(255, 255, 255, 0.9);
-  font-family: var(--serif);
-  font-size: 21px;
-  font-weight: 500;
-  background: rgba(196, 135, 129, 0.68);
-  box-shadow: 0 10px 22px rgba(196, 135, 129, 0.11);
-}
-
 .chat-log {
   display: flex;
   flex-direction: column;
@@ -812,14 +798,14 @@ textarea:focus-visible {
 
 .guide-actions {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   align-items: center;
   justify-content: flex-end;
   padding: 0 clamp(22px, 5vw, 68px) clamp(24px, 4vw, 38px);
 }
 
 .guide-write-button {
-  min-width: min(320px, 100%);
+  min-width: min(220px, 100%);
 }
 
 .writing-pad {
@@ -850,16 +836,16 @@ textarea:focus-visible {
   width: fit-content;
   gap: 14px;
   align-items: center;
-  min-height: 48px;
-  margin-bottom: 10px;
-  padding: 10px 18px;
-  border: 1px solid rgba(120, 150, 132, 0.2);
-  border-radius: 999px;
-  color: var(--moss);
-  font-size: 18px;
-  font-weight: 750;
-  background: rgba(231, 240, 233, 0.72);
-  box-shadow: 0 8px 18px rgba(120, 150, 132, 0.1);
+  min-height: 58px;
+  margin-bottom: 14px;
+  padding: 13px 22px;
+  border: 1px solid rgba(157, 167, 203, 0.34);
+  border-radius: 18px;
+  color: #4f5878;
+  font-size: clamp(20px, 2.4vw, 28px);
+  font-weight: 850;
+  background: linear-gradient(135deg, rgba(239, 237, 248, 0.96), rgba(223, 239, 244, 0.82));
+  box-shadow: 0 12px 26px rgba(157, 167, 203, 0.2);
 }
 
 .message-meta span + span {
@@ -1018,7 +1004,7 @@ textarea:focus {
 
 .flow-actions {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
   justify-content: flex-end;
 }
@@ -1029,18 +1015,18 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-width: 132px;
-  padding: 0 22px;
+  min-width: 112px;
+  padding: 0 18px;
 }
 
 .writing-pad .send-button,
 .writing-pad .back-button {
-  min-height: 84px;
-  font-size: clamp(20px, 3.2vw, 32px);
+  min-height: 58px;
+  font-size: clamp(17px, 2.2vw, 22px);
 }
 
 .writing-pad .send-button {
-  flex: 1;
+  flex: 0 0 min(260px, 55%);
 }
 
 .back-button {
@@ -1160,8 +1146,8 @@ body.is-summary .chat-log {
     gap: 14px;
   }
 
-  .quiet-actions {
-    align-self: flex-end;
+  .global-actions {
+    justify-content: flex-end;
   }
 
   .safety-strip {
@@ -1195,17 +1181,9 @@ body.is-summary .chat-log {
     font-size: 15px;
   }
 
-  .sheet-mark {
-    top: 16px;
-    right: 16px;
-    width: 36px;
-    height: 36px;
-    font-size: 19px;
-  }
-
   .chat-log {
     justify-content: start;
-    padding: 62px 16px 22px 34px;
+    padding: 28px 16px 22px 34px;
   }
 
   .message-bubble {
@@ -1216,8 +1194,8 @@ body.is-summary .chat-log {
   .message-meta {
     min-height: 42px;
     margin-bottom: 8px;
-    padding: 8px 14px;
-    font-size: 16px;
+    padding: 9px 14px;
+    font-size: 18px;
   }
 
   .composer {
@@ -1231,7 +1209,7 @@ body.is-summary .chat-log {
   .send-button,
   .back-button {
     min-width: 0;
-    flex: 1;
+    flex: 0 1 auto;
     padding: 0 14px;
   }
 
@@ -1240,7 +1218,7 @@ body.is-summary .chat-log {
   }
 
   .send-button {
-    min-height: 58px;
+    min-height: 50px;
   }
 
   textarea {
