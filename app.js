@@ -1,4 +1,5 @@
 const STORAGE_KEY = "position-shift-space-v2";
+const RECORDS_KEY = "position-shift-space-records-v1";
 
 const steps = [
   {
@@ -218,8 +219,23 @@ const guidePanel = document.querySelector("#guidePanel");
 const writePanel = document.querySelector("#writePanel");
 const guideToWriteButton = document.querySelector("#guideToWriteButton");
 const guidePrevButton = document.querySelector("#guidePrevButton");
+const recordsButton = document.querySelector("#recordsButton");
+const landingRecordsButton = document.querySelector("#landingRecordsButton");
+const recordsPanel = document.querySelector("#recordsPanel");
+const recordsBackdrop = document.querySelector("#recordsBackdrop");
+const recordsContent = document.querySelector("#recordsContent");
+const closeRecordsButton = document.querySelector("#closeRecordsButton");
 
 let state = loadState();
+let records = loadRecords();
+let recordsPanelState = {
+  open: false,
+  mode: "list",
+  selectedId: "",
+  query: "",
+  month: getMonthKey(new Date()),
+  selectedDate: "",
+};
 let isSending = false;
 
 function makeId(prefix) {
@@ -233,7 +249,10 @@ function createInitialState() {
   const now = new Date().toISOString();
   return {
     sessionId: makeId("session"),
+    recordId: "",
+    recordRemoved: false,
     createdAt: now,
+    updatedAt: now,
     started: false,
     view: "guide",
     activeStep: "topic",
@@ -265,6 +284,7 @@ function loadState() {
 
   try {
     const parsed = JSON.parse(raw);
+    if (parsed.recordRemoved && parsed.completed) return createInitialState();
     return {
       ...createInitialState(),
       ...parsed,
@@ -287,7 +307,141 @@ function loadState() {
 }
 
 function saveState() {
+  state.updatedAt = new Date().toISOString();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function loadRecords() {
+  const raw = localStorage.getItem(RECORDS_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map(normalizeRecord)
+      .filter((record) => recordHasContent(record.entries))
+      .sort(sortRecords);
+  } catch {
+    return [];
+  }
+}
+
+function saveRecords() {
+  records.sort(sortRecords);
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(records));
+}
+
+function normalizeRecord(record) {
+  const createdAt = record.createdAt || new Date().toISOString();
+  const entries = { ...emptyEntries, ...(record.entries || {}) };
+  const analysis = mergeAnalysis(analyzeEntries(entries), record.analysis || {});
+  const normalized = {
+    id: record.id || makeId("record"),
+    title: record.title || recordTitle(entries),
+    createdAt,
+    updatedAt: record.updatedAt || createdAt,
+    entries,
+    analysis,
+    summaryMarkdown: record.summaryMarkdown || "",
+  };
+  if (!normalized.summaryMarkdown) {
+    normalized.summaryMarkdown = buildMarkdownReportFor(normalized);
+  }
+  return normalized;
+}
+
+function sortRecords(a, b) {
+  return new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime();
+}
+
+function padDatePart(value) {
+  return String(value).padStart(2, "0");
+}
+
+function getDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+}
+
+function getMonthKey(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return getMonthKey(new Date());
+  return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}`;
+}
+
+function recordDateKey(record) {
+  return getDateKey(record.createdAt || record.updatedAt);
+}
+
+function addMonths(monthKey, amount) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const date = new Date(year, month - 1 + amount, 1);
+  return getMonthKey(date);
+}
+
+function formatMonthLabel(monthKey) {
+  const [year, month] = monthKey.split("-").map(Number);
+  if (!year || !month) return "";
+  return `${year} 年 ${month} 月`;
+}
+
+function formatDateOnly(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  if (!year || !month || !day) return "";
+  return new Date(year, month - 1, day).toLocaleDateString("zh-Hant", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function recordHasContent(entries = {}) {
+  return Object.values({ ...emptyEntries, ...entries }).some((value) => String(value || "").trim());
+}
+
+function recordTitle(entries = {}) {
+  const title = String(entries.topic || "").trim();
+  return title ? shortText(title, 24) : "未命名書寫";
+}
+
+function createRecordFromState(source = state) {
+  const entries = { ...emptyEntries, ...(source.entries || {}) };
+  const analysis = mergeAnalysis(analyzeEntries(entries), source.analysis || {});
+  const createdAt = source.createdAt || new Date().toISOString();
+  const record = {
+    id: source.recordId || makeId("record"),
+    title: recordTitle(entries),
+    createdAt,
+    updatedAt: new Date().toISOString(),
+    entries,
+    analysis,
+    summaryMarkdown: source.summaryMarkdown || "",
+  };
+  if (!record.summaryMarkdown) {
+    record.summaryMarkdown = buildMarkdownReportFor(record);
+  }
+  return record;
+}
+
+function saveCurrentRecord() {
+  if (!state.completed || !recordHasContent(state.entries)) return null;
+  const record = createRecordFromState(state);
+  state.recordId = record.id;
+  state.recordRemoved = false;
+  records = records.filter((item) => item.id !== record.id);
+  records.unshift(record);
+  saveRecords();
+  return record;
+}
+
+function migrateCurrentStateToRecords() {
+  if (!state.completed || !recordHasContent(state.entries)) return;
+  if (state.recordRemoved) return;
+  const existing = state.recordId && records.some((record) => record.id === state.recordId);
+  if (existing) return;
+  saveCurrentRecord();
 }
 
 function activeStepIndex() {
@@ -434,6 +588,27 @@ function shortText(text, max = 70) {
 
 function joinOrFallback(values, fallback) {
   return values.length ? values.join("、") : fallback;
+}
+
+function analyzeEntries(entries = {}) {
+  const normalized = { ...emptyEntries, ...entries };
+  return {
+    emotions: detectWords(`${normalized.topic}\n${normalized.iFirst}`, emotionWords),
+    needs: detectWords(`${normalized.topic}\n${normalized.iFirst}`, needWords),
+    supports: detectWords(normalized.you || "", supportWords),
+    contexts: detectWords(`${normalized.topic}\n${normalized.observer}`, contextWords),
+    actions: detectWords(`${normalized.iFinal}\n${normalized.action}`, actionWords),
+  };
+}
+
+function mergeAnalysis(base = {}, extra = {}) {
+  return {
+    emotions: unique([...(base.emotions || []), ...(extra.emotions || [])]),
+    needs: unique([...(base.needs || []), ...(extra.needs || [])]),
+    supports: unique([...(base.supports || []), ...(extra.supports || [])]),
+    contexts: unique([...(base.contexts || []), ...(extra.contexts || [])]),
+    actions: unique([...(base.actions || []), ...(extra.actions || [])]),
+  };
 }
 
 function nudgeForI(text) {
@@ -607,30 +782,37 @@ async function handleStep(text) {
     step: "summary",
     text: localReport,
   });
+  saveCurrentRecord();
 }
 
 function buildMarkdownReport() {
-  const emotionText = joinOrFallback(state.analysis.emotions, "尚未明確標記，也可能仍在整理中");
-  const needsText = joinOrFallback(state.analysis.needs, "需要再多一點時間靠近");
-  const supportText = state.entries.you ? state.entries.you : "這一段尚未填寫";
-  const contextText = joinOrFallback(state.analysis.contexts, "事件脈絡仍可再觀察");
-  const actionText = state.entries.action || joinOrFallback(state.analysis.actions, "先做一件低壓力的小事");
-  const selfLine = extractSelfLine();
+  return buildMarkdownReportFor(state);
+}
+
+function buildMarkdownReportFor(source) {
+  const entries = { ...emptyEntries, ...(source.entries || {}) };
+  const analysis = mergeAnalysis(analyzeEntries(entries), source.analysis || {});
+  const emotionText = joinOrFallback(analysis.emotions, "尚未明確標記，也可能仍在整理中");
+  const needsText = joinOrFallback(analysis.needs, "需要再多一點時間靠近");
+  const supportText = entries.you ? entries.you : "這一段尚未填寫";
+  const contextText = joinOrFallback(analysis.contexts, "事件脈絡仍可再觀察");
+  const actionText = entries.action || joinOrFallback(analysis.actions, "先做一件低壓力的小事");
+  const selfLine = extractSelfLine(entries);
 
   return `# 心理位移整理紀錄
 
-建立時間：${formatDateTime(state.createdAt)}
+建立時間：${formatDateTime(source.createdAt)}
 
 ## 一、我原本的狀態
 
-主題：${state.entries.topic || "尚未填寫"}
+主題：${entries.topic || "尚未填寫"}
 
 使用者一開始主要感受到：${emotionText}
 
 可能需要：${needsText}
 
 原始書寫：
-${state.entries.iFirst || "尚未填寫"}
+${entries.iFirst || "尚未填寫"}
 
 ## 二、你的位置帶來的提醒
 
@@ -643,13 +825,13 @@ ${supportText}
 從旁觀者角度來看，這件事可能包含：${contextText}
 
 原始觀察：
-${state.entries.observer || "尚未填寫"}
+${entries.observer || "尚未填寫"}
 
 ## 四、回到我之後的新發現
 
 使用者重新回到「我」的位置後，看見：
 
-${state.entries.iFinal || "尚未填寫"}
+${entries.iFinal || "尚未填寫"}
 
 ## 五、可以先做的一件小事
 
@@ -662,9 +844,9 @@ ${actionText}
 > ${selfLine}`;
 }
 
-function extractSelfLine() {
-  const source = state.entries.iFinal || state.entries.you || state.entries.action || "";
-  const sentences = source
+function extractSelfLine(entries = state.entries) {
+  const sourceText = entries.iFinal || entries.you || entries.action || "";
+  const sentences = sourceText
     .split(/[。！？\n]/)
     .map((item) => item.trim())
     .filter(Boolean);
@@ -886,7 +1068,362 @@ function render() {
   } else {
     messageInput.placeholder = "在這裡寫下現在浮現的話...";
   }
+  renderRecordsPanel();
   saveState();
+}
+
+function openRecordsPanel(mode = "list", selectedId = "") {
+  records = loadRecords();
+  recordsPanelState = {
+    ...recordsPanelState,
+    open: true,
+    mode,
+    selectedId,
+    month: recordsPanelState.month || getMonthKey(new Date()),
+  };
+  renderRecordsPanel();
+}
+
+function closeRecordsPanel() {
+  recordsPanelState.open = false;
+  renderRecordsPanel();
+}
+
+function renderRecordsPanel(focusSearch = false) {
+  if (!recordsPanel || !recordsContent) return;
+  recordsPanel.hidden = !recordsPanelState.open;
+  document.body.classList.toggle("records-open", recordsPanelState.open);
+  if (!recordsPanelState.open) return;
+
+  const record = records.find((item) => item.id === recordsPanelState.selectedId);
+  if (recordsPanelState.mode === "detail" && record) {
+    recordsContent.innerHTML = renderRecordDetail(record);
+    return;
+  }
+  if (recordsPanelState.mode === "edit" && record) {
+    recordsContent.innerHTML = renderRecordEditor(record);
+    return;
+  }
+  recordsPanelState.mode = "list";
+  recordsPanelState.selectedId = "";
+  recordsContent.innerHTML = renderRecordsList();
+  if (focusSearch) {
+    requestAnimationFrame(() => {
+      const input = recordsContent.querySelector("[data-record-search]");
+      if (!input) return;
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+  }
+}
+
+function renderRecordsList() {
+  if (!records.length) {
+    return `<div class="records-empty">
+      <p>還沒有書寫記錄。</p>
+      <span>完成一輪心理位移後，這裡會自動保存。</span>
+    </div>`;
+  }
+
+  const matchingRecords = filterRecords(records);
+  const shownRecords = recordsPanelState.selectedDate
+    ? matchingRecords.filter((record) => recordDateKey(record) === recordsPanelState.selectedDate)
+    : matchingRecords;
+  const resultTitle = recordsPanelState.selectedDate
+    ? `${formatDateOnly(recordsPanelState.selectedDate)} 的記錄`
+    : recordsPanelState.query
+      ? "搜尋結果"
+      : "全部記錄";
+
+  return `${renderRecordsFinder(matchingRecords)}
+  <div class="records-result-head">
+    <strong>${escapeHtml(resultTitle)}</strong>
+    <span>${shownRecords.length} 筆</span>
+  </div>
+  ${
+    shownRecords.length
+      ? `<div class="records-list">${shownRecords.map(renderRecordItem).join("")}</div>`
+      : `<div class="records-empty compact">
+        <p>找不到符合的記錄。</p>
+        <span>可以換個關鍵字，或回到全部日期查看。</span>
+      </div>`
+  }`;
+}
+
+function renderRecordsFinder(matchingRecords) {
+  const query = recordsPanelState.query || "";
+  const clearSearchButton = query
+    ? `<button class="mini-button" type="button" data-record-action="clear-search">清除搜尋</button>`
+    : "";
+  const clearDateButton = recordsPanelState.selectedDate
+    ? `<button class="mini-button" type="button" data-record-action="clear-date">全部日期</button>`
+    : "";
+
+  return `<div class="records-finder">
+    <label class="records-search">
+      <span class="sr-only">搜尋書寫記錄</span>
+      <input
+        type="search"
+        data-record-search
+        placeholder="搜尋主題、內容或日期..."
+        value="${escapeHtml(query)}"
+        autocomplete="off"
+      />
+    </label>
+    <div class="records-filter-actions">
+      ${clearSearchButton}
+      ${clearDateButton}
+    </div>
+    ${renderRecordsCalendar(matchingRecords)}
+  </div>`;
+}
+
+function renderRecordsCalendar(matchingRecords) {
+  const monthKey = recordsPanelState.month || getMonthKey(new Date());
+  const [year, month] = monthKey.split("-").map(Number);
+  const firstDay = new Date(year, month - 1, 1);
+  const startOffset = firstDay.getDay();
+  const recordCounts = matchingRecords.reduce((counts, record) => {
+    const key = recordDateKey(record);
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+  const todayKey = getDateKey(new Date());
+  const dayButtons = Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(year, month - 1, 1 - startOffset + index);
+    const dateKey = getDateKey(date);
+    const outside = date.getMonth() !== month - 1;
+    const count = recordCounts[dateKey] || 0;
+    const classes = ["calendar-day"];
+    if (outside) classes.push("is-outside");
+    if (count) classes.push("has-record");
+    if (dateKey === todayKey) classes.push("is-today");
+    if (dateKey === recordsPanelState.selectedDate) classes.push("is-selected");
+
+    return `<button
+      class="${classes.join(" ")}"
+      type="button"
+      data-record-action="select-date"
+      data-record-date="${escapeHtml(dateKey)}"
+      ${outside ? "disabled" : ""}
+    >
+      <span>${date.getDate()}</span>
+      ${count ? `<small>${count}</small>` : ""}
+    </button>`;
+  }).join("");
+
+  return `<section class="records-calendar" aria-label="書寫記錄月曆">
+    <div class="calendar-nav">
+      <button class="mini-button" type="button" data-record-action="prev-month" aria-label="上一個月">←</button>
+      <strong>${escapeHtml(formatMonthLabel(monthKey))}</strong>
+      <button class="mini-button" type="button" data-record-action="next-month" aria-label="下一個月">→</button>
+    </div>
+    <div class="calendar-weekdays" aria-hidden="true">
+      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+    </div>
+    <div class="calendar-grid">
+      ${dayButtons}
+    </div>
+  </section>`;
+}
+
+function filterRecords(sourceRecords) {
+  const query = (recordsPanelState.query || "").trim().toLowerCase();
+  if (!query) return sourceRecords;
+  return sourceRecords.filter((record) => getRecordSearchText(record).includes(query));
+}
+
+function getRecordSearchText(record) {
+  const values = [
+    record.title,
+    formatDateTime(record.createdAt),
+    formatDateTime(record.updatedAt),
+    ...Object.values(record.entries || {}),
+    record.summaryMarkdown,
+  ];
+  return values.join("\n").toLowerCase();
+}
+
+function renderRecordItem(record) {
+  const previewSource = record.entries.iFinal || record.entries.you || record.entries.iFirst || record.entries.topic || "";
+  return `<article class="record-item" data-record-id="${escapeHtml(record.id)}">
+    <div class="record-main">
+      <time>${escapeHtml(formatDateTime(record.updatedAt || record.createdAt))}</time>
+      <h3>${escapeHtml(record.title)}</h3>
+      <p>${escapeHtml(shortText(previewSource || "這一筆書寫還在安靜地等你回來。", 88))}</p>
+    </div>
+    <div class="record-actions">
+      <button class="mini-button" type="button" data-record-action="view" data-record-id="${escapeHtml(record.id)}">翻閱</button>
+      <button class="mini-button" type="button" data-record-action="edit" data-record-id="${escapeHtml(record.id)}">編輯</button>
+      <button class="mini-button danger" type="button" data-record-action="delete" data-record-id="${escapeHtml(record.id)}">刪除</button>
+    </div>
+  </article>`;
+}
+
+function renderRecordDetail(record) {
+  const markdown = record.summaryMarkdown || buildMarkdownReportFor(record);
+  return `<div class="records-toolbar">
+    <button class="mini-button" type="button" data-record-action="list">返回列表</button>
+    <button class="mini-button" type="button" data-record-action="edit" data-record-id="${escapeHtml(record.id)}">編輯</button>
+    <button class="mini-button danger" type="button" data-record-action="delete" data-record-id="${escapeHtml(record.id)}">刪除</button>
+  </div>
+  <article class="record-detail">
+    <div class="record-detail-head">
+      <time>${escapeHtml(formatDateTime(record.updatedAt || record.createdAt))}</time>
+      <h3>${escapeHtml(record.title)}</h3>
+    </div>
+    <div class="record-report">${renderReport(markdown)}</div>
+  </article>`;
+}
+
+function renderRecordEditor(record) {
+  return `<div class="records-toolbar">
+    <button class="mini-button" type="button" data-record-action="detail" data-record-id="${escapeHtml(record.id)}">取消</button>
+    <button class="mini-button primary" type="button" data-record-action="save-edit" data-record-id="${escapeHtml(record.id)}">保存修改</button>
+  </div>
+  <form class="record-editor" data-record-id="${escapeHtml(record.id)}">
+    ${renderRecordField("topic", "主題", "寫下這次想整理的事", record.entries.topic)}
+    ${renderRecordField("iFirst", "我的位置", "我在這件事裡的感受", record.entries.iFirst)}
+    ${renderRecordField("you", "你的位置", "對剛才的自己說話", record.entries.you)}
+    ${renderRecordField("observer", "他 / 她的位置", "從旁觀者角度觀看", record.entries.observer)}
+    ${renderRecordField("iFinal", "回到我", "帶著新的理解回來", record.entries.iFinal)}
+    ${renderRecordField("action", "小行動", "可以先做的一件小事", record.entries.action)}
+  </form>`;
+}
+
+function renderRecordField(id, label, hint, value = "") {
+  return `<label class="record-field">
+    <span>${escapeHtml(label)}</span>
+    <small>${escapeHtml(hint)}</small>
+    <textarea rows="4" data-record-field="${escapeHtml(id)}">${escapeHtml(value)}</textarea>
+  </label>`;
+}
+
+function handleRecordsClick(event) {
+  const button = event.target.closest("[data-record-action]");
+  if (!button) return;
+  const action = button.dataset.recordAction;
+  const id = button.dataset.recordId || recordsPanelState.selectedId;
+
+  if (action === "list") {
+    recordsPanelState.mode = "list";
+    recordsPanelState.selectedId = "";
+    renderRecordsPanel();
+    return;
+  }
+
+  if (action === "prev-month" || action === "next-month") {
+    recordsPanelState.month = addMonths(recordsPanelState.month || getMonthKey(new Date()), action === "prev-month" ? -1 : 1);
+    recordsPanelState.selectedDate = "";
+    renderRecordsPanel();
+    return;
+  }
+
+  if (action === "select-date") {
+    recordsPanelState.selectedDate = button.dataset.recordDate || "";
+    renderRecordsPanel();
+    return;
+  }
+
+  if (action === "clear-date") {
+    recordsPanelState.selectedDate = "";
+    renderRecordsPanel();
+    return;
+  }
+
+  if (action === "clear-search") {
+    recordsPanelState.query = "";
+    recordsPanelState.selectedDate = "";
+    renderRecordsPanel(true);
+    return;
+  }
+
+  if (action === "view" || action === "detail") {
+    recordsPanelState.mode = "detail";
+    recordsPanelState.selectedId = id;
+    renderRecordsPanel();
+    return;
+  }
+
+  if (action === "edit") {
+    recordsPanelState.mode = "edit";
+    recordsPanelState.selectedId = id;
+    renderRecordsPanel();
+    return;
+  }
+
+  if (action === "save-edit") {
+    saveRecordEdit(id);
+    return;
+  }
+
+  if (action === "delete") {
+    deleteRecord(id);
+  }
+}
+
+function handleRecordsInput(event) {
+  const input = event.target.closest("[data-record-search]");
+  if (!input) return;
+  recordsPanelState.query = input.value;
+  recordsPanelState.selectedDate = "";
+  renderRecordsPanel(true);
+}
+
+function saveRecordEdit(id) {
+  const record = records.find((item) => item.id === id);
+  if (!record || !recordsContent) return;
+
+  const nextEntries = { ...emptyEntries };
+  recordsContent.querySelectorAll("[data-record-field]").forEach((field) => {
+    nextEntries[field.dataset.recordField] = field.value.trim();
+  });
+
+  if (!recordHasContent(nextEntries)) {
+    window.alert("這筆記錄目前沒有內容，請先留下至少一段文字。");
+    return;
+  }
+
+  const updated = {
+    ...record,
+    title: recordTitle(nextEntries),
+    updatedAt: new Date().toISOString(),
+    entries: nextEntries,
+    analysis: analyzeEntries(nextEntries),
+  };
+  updated.summaryMarkdown = buildMarkdownReportFor(updated);
+  records = records.map((item) => (item.id === id ? updated : item));
+  saveRecords();
+  syncCurrentStateWithRecord(updated);
+  recordsPanelState.mode = "detail";
+  recordsPanelState.selectedId = id;
+  render();
+}
+
+function syncCurrentStateWithRecord(record) {
+  if (state.recordId !== record.id) return;
+  state.entries = { ...emptyEntries, ...record.entries };
+  state.analysis = mergeAnalysis(analyzeEntries(record.entries), record.analysis || {});
+  state.summaryMarkdown = record.summaryMarkdown;
+  const report = state.messages.find((message) => message.kind === "report");
+  if (report) {
+    report.text = record.summaryMarkdown;
+  }
+}
+
+function deleteRecord(id) {
+  const record = records.find((item) => item.id === id);
+  if (!record) return;
+  const confirmed = window.confirm(`要刪除「${record.title}」這筆書寫記錄嗎？`);
+  if (!confirmed) return;
+  records = records.filter((item) => item.id !== id);
+  saveRecords();
+  if (state.recordId === id) {
+    state = createInitialState();
+  }
+  recordsPanelState.mode = "list";
+  recordsPanelState.selectedId = "";
+  render();
 }
 
 async function submitCurrentStep(event) {
@@ -954,6 +1491,33 @@ if (guidePrevButton) {
   guidePrevButton.addEventListener("click", goPreviousStep);
 }
 
+if (recordsButton) {
+  recordsButton.addEventListener("click", () => openRecordsPanel());
+}
+
+if (landingRecordsButton) {
+  landingRecordsButton.addEventListener("click", () => openRecordsPanel());
+}
+
+if (closeRecordsButton) {
+  closeRecordsButton.addEventListener("click", closeRecordsPanel);
+}
+
+if (recordsBackdrop) {
+  recordsBackdrop.addEventListener("click", closeRecordsPanel);
+}
+
+if (recordsContent) {
+  recordsContent.addEventListener("click", handleRecordsClick);
+  recordsContent.addEventListener("input", handleRecordsInput);
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && recordsPanelState.open) {
+    closeRecordsPanel();
+  }
+});
+
 resetButton.addEventListener("click", () => {
   const confirmed = window.confirm("要清除目前這一輪練習，重新開始嗎？");
   if (!confirmed) return;
@@ -1000,4 +1564,5 @@ if (startButton) {
   });
 }
 
+migrateCurrentStateToRecords();
 render();

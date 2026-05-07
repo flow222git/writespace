@@ -32,11 +32,15 @@
         <p class="landing-kicker">psychological position shift</p>
         <h1 id="landingTitle">心理位移書寫空間</h1>
         <p class="landing-words">位移　切換　空間</p>
-        <button class="start-button" id="startButton" type="button">進入書寫</button>
+        <div class="landing-actions">
+          <button class="start-button" id="startButton" type="button">進入書寫</button>
+          <button class="secondary-button" id="landingRecordsButton" type="button">書寫記錄</button>
+        </div>
       </section>
 
       <section class="writing-page" id="writingPage" aria-label="心理位移書寫">
         <div class="global-actions" aria-label="工具操作">
+          <button class="record-button" id="recordsButton" type="button">書寫記錄</button>
           <button class="icon-button" id="copySummaryButton" type="button" title="複製整理" aria-label="複製整理">
             <span aria-hidden="true">⧉</span>
           </button>
@@ -111,6 +115,22 @@
         </footer>
       </section>
     </main>
+
+    <aside class="records-panel" id="recordsPanel" role="dialog" aria-modal="true" aria-labelledby="recordsTitle" hidden>
+      <div class="records-backdrop" id="recordsBackdrop" aria-hidden="true"></div>
+      <div class="records-drawer">
+        <header class="records-header">
+          <div>
+            <p class="records-kicker">writing archive</p>
+            <h2 id="recordsTitle">書寫記錄</h2>
+          </div>
+          <button class="icon-button" id="closeRecordsButton" type="button" title="關閉記錄" aria-label="關閉記錄">
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+        <div class="records-content" id="recordsContent" aria-live="polite"></div>
+      </div>
+    </aside>
 
     <script src="./app.js"></script>
   </body>
