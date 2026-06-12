@@ -1587,4 +1587,7 @@ function jteTodayKey(){var d=new Date();return d.getFullYear()+'-'+String(d.getM
 function jteAll(){try{return JSON.parse(localStorage.getItem(jteKey())||'{}')}catch(e){return{}}}
 function jteFsSave(dateKey,day){var e=jteEmail();if(!_jteWsDb||!e)return;_jteWsDb.collection('users').doc(e.toLowerCase().trim()).collection('daily').doc(dateKey).set(day,{merge:true}).catch(function(err){console.warn('FS write failed',err);});}
 function jteWriteRecord(rec){var k=jteKey(),today=jteTodayKey(),all=jteAll();var day=all[today]||{moods:[],energy:5,note:'',tags:[],linked:[],createdAt:new Date().toISOString()};if(!day.linked)day.linked=[];day.linked=day.linked.filter(function(l){return l.recordId!==rec.recordId;});day.linked.push(rec);day.updatedAt=new Date().toISOString();all[today]=day;localStorage.setItem(k,JSON.stringify(all));jteFsSave(today,day);}
-function jtePushWriteSpace(record){try{if(!record)return;if(!jteEmail())return;var e=record.entries||{};var topic=((e.topic||record.title||'一次書寫')+'').trim();var src=((e.iFinal||e.iFirst||e.you||'')+'').trim();var excerpt=src?(src.length>60?src.slice(0,60)+'…':src):'';jteWriteRecord({source:'WriteSpace',id:'ws-'+record.id,recordId:'ws-'+record.id,ts:record.createdAt||new Date().toISOString(),topic:topic,excerpt:excerpt});}catch(err){console.warn('WriteSpace 同步失敗',err);}}
+function jtePushWriteSpace(record){try{if(!record)return;if(!jteEmail())return;
+  // 隱私：心理位移書寫的全文與主題只存本機、絕不上傳。
+  // 上 Firestore 的時間軸 stub 只記錄「做過一次書寫」這個事實，不含任何使用者文字。
+  jteWriteRecord({source:'WriteSpace',id:'ws-'+record.id,recordId:'ws-'+record.id,ts:record.createdAt||new Date().toISOString(),label:'心理位移書寫'});}catch(err){console.warn('WriteSpace 同步失敗',err);}}
