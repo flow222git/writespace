@@ -1362,6 +1362,46 @@ body.records-open {
   cursor: default;
 }
 
+.ws-privacy-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(120, 144, 130, 0.08);
+  font-size: 13px;
+  color: #59645d;
+}
+.ws-privacy-bar:empty {
+  display: none;
+}
+.ws-priv-hint {
+  color: var(--muted);
+}
+.ws-priv-btn {
+  border: 1px solid rgba(120, 144, 130, 0.4);
+  background: #fff;
+  color: #3f5147;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.ws-priv-btn:hover {
+  background: rgba(120, 144, 130, 0.12);
+}
+.ws-priv-ok {
+  color: #3f7a55;
+  font-weight: 600;
+}
+.ws-priv-link {
+  color: #6B7A8D;
+  text-decoration: underline;
+  font-size: 12px;
+}
+
 .records-result-head {
   display: flex;
   align-items: center;

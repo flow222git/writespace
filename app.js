@@ -1109,6 +1109,7 @@ function renderRecordsPanel(focusSearch = false) {
   recordsPanelState.mode = "list";
   recordsPanelState.selectedId = "";
   recordsContent.innerHTML = renderRecordsList();
+  wsRenderPrivacyBar();
   if (focusSearch) {
     requestAnimationFrame(() => {
       const input = recordsContent.querySelector("[data-record-search]");
@@ -1120,8 +1121,9 @@ function renderRecordsPanel(focusSearch = false) {
 }
 
 function renderRecordsList() {
+  const privacyBar = `<div id="ws-privacy-bar" class="ws-privacy-bar"></div>`;
   if (!records.length) {
-    return `<div class="records-empty">
+    return `${privacyBar}<div class="records-empty">
       <p>還沒有書寫記錄。</p>
       <span>完成一輪心理位移後，這裡會自動保存。</span>
     </div>`;
@@ -1137,7 +1139,7 @@ function renderRecordsList() {
       ? "搜尋結果"
       : "全部記錄";
 
-  return `${renderRecordsFinder(matchingRecords)}
+  return `${privacyBar}${renderRecordsFinder(matchingRecords)}
   <div class="records-result-head">
     <strong>${escapeHtml(resultTitle)}</strong>
     <span>${shownRecords.length} 筆</span>
@@ -1627,3 +1629,50 @@ function wsInitialSync(tries){
   wsSyncFromCloud();
 }
 window.addEventListener('load',function(){setTimeout(function(){wsInitialSync(0);},300);});
+
+// 動態 🔒 行：誠實反映是否上傳。解鎖才顯示「已加密同步」；其餘一律「只存這台裝置」。
+function wsRefreshPrivacyLine(){
+  var el=document.getElementById('ws-privacy-line');if(!el||!window.JtePrivacy)return;
+  if(JtePrivacy.isUnlocked())el.textContent='已加密同步，連我們也解不開';
+  else el.textContent='你的書寫只存在這台裝置，不會上傳';
+}
+// 啟用/解鎖/鎖定後統一刷新（拉雲端＋更新行＋重繪狀態列）。
+function wsAfterPrivacyChange(){try{wsSyncFromCloud();}catch(e){}wsRefreshPrivacyLine();wsRenderPrivacyBar();}
+// 記錄面板頂部「私密同步」狀態列：四態（比照卜易）。
+function wsRenderPrivacyBar(){
+  var box=document.getElementById('ws-privacy-bar');if(!box)return;
+  if(!window.JtePrivacy){box.innerHTML='';return;}
+  if(!jteEmail()){
+    box.innerHTML='<span class="ws-priv-hint">登入練息場後可開啟跨裝置加密同步</span>';
+    return;
+  }
+  box.innerHTML='<span class="ws-priv-hint">私密同步：檢查中…</span>';
+  Promise.resolve(JtePrivacy.isEnabled()).then(function(enabled){
+    if(!box.isConnected)return;
+    if(!enabled){
+      box.innerHTML='<button type="button" class="ws-priv-btn">🔒 開啟跨裝置加密同步</button>';
+      box.querySelector('.ws-priv-btn').onclick=function(){JtePrivacy.enable().then(wsAfterPrivacyChange).catch(function(){});};
+      return;
+    }
+    if(!JtePrivacy.isUnlocked()){
+      box.innerHTML='<button type="button" class="ws-priv-btn">🔓 解鎖</button> <a href="#" class="ws-priv-link">換密語</a>';
+      box.querySelector('.ws-priv-btn').onclick=function(){JtePrivacy.unlock().then(wsAfterPrivacyChange).catch(function(){});};
+      box.querySelector('.ws-priv-link').onclick=function(ev){ev.preventDefault();JtePrivacy.changePassphrase().then(wsAfterPrivacyChange).catch(function(){});};
+      return;
+    }
+    box.innerHTML='<span class="ws-priv-ok">✓ 已加密同步（連我們也解不開）</span> <a href="#" class="ws-priv-link">鎖定</a>';
+    box.querySelector('.ws-priv-link').onclick=function(ev){ev.preventDefault();JtePrivacy.lock();wsRefreshPrivacyLine();wsRenderPrivacyBar();};
+  }).catch(function(){if(box.isConnected)box.innerHTML='';});
+}
+// 進站若已啟用未解鎖→自動提示解鎖一次（旗標防重複），解鎖後同步。
+var _wsAutoUnlockTried=false;
+function wsMaybeAutoUnlock(){
+  if(_wsAutoUnlockTried||!window.JtePrivacy||!jteEmail())return;
+  Promise.resolve(JtePrivacy.isEnabled()).then(function(enabled){
+    if(enabled&&!JtePrivacy.isUnlocked()&&!_wsAutoUnlockTried){
+      _wsAutoUnlockTried=true;
+      JtePrivacy.unlock().then(wsAfterPrivacyChange).catch(function(){});
+    }
+  }).catch(function(){});
+}
+window.addEventListener('load',function(){setTimeout(function(){wsRefreshPrivacyLine();wsMaybeAutoUnlock();},400);});
