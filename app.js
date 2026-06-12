@@ -1617,3 +1617,13 @@ function wsSyncFromCloud(){
     return true;
   }).catch(function(){return false;});
 }
+// 進站若已解鎖（同 session）：等 Firestore 就緒後拉雲端、解密、併本機（容錯、不阻塞）。
+var _wsInitialSyncDone=false;
+function wsInitialSync(tries){
+  if(_wsInitialSyncDone)return;
+  if(!window.JtePrivacy||!JtePrivacy.isUnlocked())return; // 未解鎖：不動作（維持只本機）
+  if(!_jteWsDb||!jteEmail()){ if((tries||0)<25){setTimeout(function(){wsInitialSync((tries||0)+1);},200);} return; }
+  _wsInitialSyncDone=true;
+  wsSyncFromCloud();
+}
+window.addEventListener('load',function(){setTimeout(function(){wsInitialSync(0);},300);});
