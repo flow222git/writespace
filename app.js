@@ -434,6 +434,7 @@ function saveCurrentRecord() {
   records.unshift(record);
   saveRecords();
   jtePushWriteSpace(record);
+  wsPushRecord(record);
   return record;
 }
 
@@ -1395,6 +1396,7 @@ function saveRecordEdit(id) {
   updated.summaryMarkdown = buildMarkdownReportFor(updated);
   records = records.map((item) => (item.id === id ? updated : item));
   saveRecords();
+  wsPushRecord(updated);
   syncCurrentStateWithRecord(updated);
   recordsPanelState.mode = "detail";
   recordsPanelState.selectedId = id;
@@ -1419,6 +1421,7 @@ function deleteRecord(id) {
   if (!confirmed) return;
   records = records.filter((item) => item.id !== id);
   saveRecords();
+  wsDeleteRecord(id);
   if (state.recordId === id) {
     state = createInitialState();
   }
@@ -1591,3 +1594,26 @@ function jtePushWriteSpace(record){try{if(!record)return;if(!jteEmail())return;
   // 隱私：心理位移書寫的全文與主題只存本機、絕不上傳。
   // 上 Firestore 的時間軸 stub 只記錄「做過一次書寫」這個事實，不含任何使用者文字。
   jteWriteRecord({source:'WriteSpace',id:'ws-'+record.id,recordId:'ws-'+record.id,ts:record.createdAt||new Date().toISOString(),label:'心理位移書寫'});}catch(err){console.warn('WriteSpace 同步失敗',err);}}
+
+// ===== 心理位移加密跨裝置同步（Plan 6）=====
+// 整筆書寫加密為單一 enc blob，存 users/{email}/writespace/{id}。
+// 僅在 JtePrivacy 解鎖時上傳/讀回；未啟用/未解鎖維持只本機，雲端 doc 絕不含明文。
+function wsFsDoc(id){var e=jteEmail();if(!_jteWsDb||!e)return null;return _jteWsDb.collection('users').doc(e.toLowerCase().trim()).collection('writespace').doc(id);}
+function wsPushRecord(record){
+  try{
+    if(!record||!window.WsPrivacy||!window.JtePrivacy||!JtePrivacy.isUnlocked())return; // 未啟用/未解鎖：只本機
+    var ref=wsFsDoc(record.id);if(!ref)return;
+    WsPrivacy.recordToCloud(record).then(function(doc){ref.set(doc);}).catch(function(){});
+  }catch(e){console.warn('ws push failed',e);}
+}
+function wsDeleteRecord(id){try{var ref=wsFsDoc(id);if(ref)ref.delete().catch(function(){});}catch(e){}}
+function wsFsLoad(){var e=jteEmail();if(!_jteWsDb||!e)return Promise.resolve([]);return _jteWsDb.collection('users').doc(e.toLowerCase().trim()).collection('writespace').get().then(function(s){var a=[];s.forEach(function(d){a.push(d.data());});return a;}).catch(function(){return[];});}
+function wsSyncFromCloud(){
+  if(!window.WsPrivacy||!window.JtePrivacy||!JtePrivacy.isUnlocked())return Promise.resolve(false);
+  return wsFsLoad().then(function(docs){return Promise.all(docs.map(WsPrivacy.cloudToRecord));}).then(function(cloudRecs){
+    cloudRecs=cloudRecs.filter(Boolean).map(normalizeRecord);
+    records=WsPrivacy.mergeRecords(records,cloudRecs).sort(sortRecords);
+    saveRecords();renderRecordsPanel();
+    return true;
+  }).catch(function(){return false;});
+}
