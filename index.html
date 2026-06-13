@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>心理位移書寫空間</title>
+    <title data-i18n="page_title">心理位移書寫空間</title>
     <link rel="stylesheet" href="./styles.css" />
     <!-- 練息場平台：寫入時間軸用 Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -18,6 +18,12 @@
     <script defer src="https://flow222git.github.io/jte-platform-2026/jte-privacy.js"></script>
     <!-- 心理位移：記錄↔雲端加解密/合併純模組 -->
     <script defer src="./writespace-privacy.js"></script>
+    <!-- i18n safe stub (before inline scripts) -->
+    <script>window.jteT=window.jteT||function(k,z){return z!=null?z:k;};</script>
+    <!-- 心理位移多語系字典 + jteI18nApply 鉤子 -->
+    <script src="./writespace-i18n.js"></script>
+    <!-- 多語系引擎（共用 localStorage.jte_lang，注入中/EN/日切換器） -->
+    <script defer src="https://flow222git.github.io/jte-platform-2026/jte-i18n.js"></script>
     <div class="fractal-field" aria-hidden="true">
       <span class="fractal-stem stem-a"></span>
       <span class="fractal-stem stem-b"></span>
@@ -40,34 +46,34 @@
 
     <main class="space-shell">
       <section class="landing-page" id="landingPage" aria-labelledby="landingTitle">
-        <p class="landing-kicker">psychological position shift</p>
-        <h1 id="landingTitle">心理位移書寫空間</h1>
-        <p class="landing-words">位移　切換　空間</p>
+        <p class="landing-kicker" data-i18n="landing_kicker">psychological position shift</p>
+        <h1 id="landingTitle" data-i18n="landing_title">心理位移書寫空間</h1>
+        <p class="landing-words" data-i18n="landing_words">位移　切換　空間</p>
         <div class="landing-actions">
-          <button class="start-button" id="startButton" type="button">進入書寫</button>
-          <button class="secondary-button" id="landingRecordsButton" type="button">書寫記錄</button>
+          <button class="start-button" id="startButton" type="button" data-i18n="btn_start">進入書寫</button>
+          <button class="secondary-button" id="landingRecordsButton" type="button" data-i18n="btn_records">書寫記錄</button>
         </div>
       </section>
 
       <section class="writing-page" id="writingPage" aria-label="心理位移書寫">
         <div class="global-actions" aria-label="工具操作">
-          <button class="record-button" id="recordsButton" type="button">書寫記錄</button>
-          <button class="icon-button" id="copySummaryButton" type="button" title="複製整理" aria-label="複製整理">
+          <button class="record-button" id="recordsButton" type="button" data-i18n="btn_records">書寫記錄</button>
+          <button class="icon-button" id="copySummaryButton" type="button" data-i18n-ph="btn_copy_title" title="複製整理" aria-label="複製整理">
             <span aria-hidden="true">⧉</span>
           </button>
-          <button class="icon-button" id="downloadButton" type="button" title="下載紀錄" aria-label="下載紀錄">
+          <button class="icon-button" id="downloadButton" type="button" data-i18n-ph="btn_download_title" title="下載紀錄" aria-label="下載紀錄">
             <span aria-hidden="true">↓</span>
           </button>
-          <button class="icon-button danger-lite" id="resetButton" type="button" title="重新開始" aria-label="重新開始">
+          <button class="icon-button danger-lite" id="resetButton" type="button" data-i18n-ph="btn_reset_title" title="重新開始" aria-label="重新開始">
             <span aria-hidden="true">↺</span>
           </button>
         </div>
 
         <header class="space-header">
           <div>
-            <p class="space-kicker" id="currentPosition">選擇主題</p>
-            <h2 id="pageTitle">選一件現在願意靠近的事</h2>
-            <p class="page-prompt" id="pagePrompt">不用選最嚴重的事，選一件你現在願意稍微靠近的事就好。</p>
+            <p class="space-kicker" id="currentPosition" data-i18n="step_topic_position">選擇主題</p>
+            <h2 id="pageTitle" data-i18n="step_topic_title">選一件現在願意靠近的事</h2>
+            <p class="page-prompt" id="pagePrompt" data-i18n="step_topic_prompt">不用選最嚴重的事，選一件你現在願意稍微靠近的事就好。</p>
           </div>
         </header>
 
@@ -77,7 +83,7 @@
 
         <section class="safety-strip" aria-label="安全提醒">
           <div class="safety-icon" aria-hidden="true">!</div>
-          <p>
+          <p data-i18n="safety_notice">
             如果你正處在強烈危機、想傷害自己或他人的狀態，請先暫停練習，立刻聯絡可信任的人、當地緊急服務或專業心理 / 醫療資源。
           </p>
         </section>
@@ -87,10 +93,10 @@
           <div class="guide-actions">
             <button class="back-button" id="guidePrevButton" type="button">
               <span aria-hidden="true">←</span>
-              <span>上一步</span>
+              <span data-i18n="btn_prev">上一步</span>
             </button>
             <button class="send-button guide-write-button" id="guideToWriteButton" type="button">
-              <span>開始書寫</span>
+              <span data-i18n="btn_start_writing">開始書寫</span>
               <span aria-hidden="true">→</span>
             </button>
           </div>
@@ -100,23 +106,24 @@
           <div class="composer-wrap">
             <div class="starter-row" id="starterRow" aria-label="句子開頭"></div>
             <form class="composer" id="messageForm">
-              <label class="sr-only" for="messageInput">輸入你的回應</label>
+              <label class="sr-only" for="messageInput" data-i18n="input_label">輸入你的回應</label>
               <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#6B7A8D;margin-bottom:8px;flex-wrap:wrap">
-                <span>🔒</span><span id="ws-privacy-line">你的書寫只存在這台裝置，不會上傳</span>
-                <a href="#" onclick="event.preventDefault();window.showPrivacyInfo&&window.showPrivacyInfo()" style="color:inherit;text-decoration:underline">了解隱私</a>
+                <span>🔒</span><span id="ws-privacy-line" data-i18n="privacy_local">你的書寫只存在這台裝置，不會上傳</span>
+                <a href="#" onclick="event.preventDefault();window.showPrivacyInfo&&window.showPrivacyInfo()" style="color:inherit;text-decoration:underline" data-i18n="privacy_link">了解隱私</a>
               </div>
               <textarea
                 id="messageInput"
                 rows="6"
+                data-i18n-ph="input_placeholder"
                 placeholder="在這裡慢慢寫下來..."
               ></textarea>
               <div class="flow-actions">
                 <button class="back-button" id="prevButton" type="button">
                   <span aria-hidden="true">←</span>
-                  <span>上一步</span>
+                  <span data-i18n="btn_prev">上一步</span>
                 </button>
                 <button class="send-button" id="sendButton" type="button">
-                  <span id="sendButtonText">下一步</span>
+                  <span id="sendButtonText" data-i18n="btn_next">下一步</span>
                   <span aria-hidden="true">→</span>
                 </button>
               </div>
@@ -125,7 +132,7 @@
         </section>
 
         <footer class="space-footer">
-          <p>內容只保存在這個瀏覽器，可以下載成 Markdown 紀錄。</p>
+          <p data-i18n="footer_note">內容只保存在這個瀏覽器，可以下載成 Markdown 紀錄。</p>
           <ol class="sr-only" id="stepList"></ol>
         </footer>
       </section>
@@ -137,9 +144,9 @@
         <header class="records-header">
           <div>
             <p class="records-kicker">writing archive</p>
-            <h2 id="recordsTitle">書寫記錄</h2>
+            <h2 id="recordsTitle" data-i18n="records_title">書寫記錄</h2>
           </div>
-          <button class="icon-button" id="closeRecordsButton" type="button" title="關閉記錄" aria-label="關閉記錄">
+          <button class="icon-button" id="closeRecordsButton" type="button" data-i18n-ph="btn_close_records_title" title="關閉記錄" aria-label="關閉記錄">
             <span aria-hidden="true">×</span>
           </button>
         </header>

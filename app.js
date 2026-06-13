@@ -1,95 +1,133 @@
 const STORAGE_KEY = "position-shift-space-v2";
 const RECORDS_KEY = "position-shift-space-records-v1";
 
-const steps = [
-  {
-    id: "topic",
-    label: "主題",
-    hint: "選一件現在願意靠近的事",
-    position: "選擇主題",
-    starters: ["最近讓我卡住的是……", "我想整理的是……", "如果一句話說，是……"],
-  },
-  {
-    id: "iFirst",
-    label: "我",
-    hint: "讓真實感受先被看見",
-    position: "我的位置",
-    starters: ["我覺得……", "我其實很……", "我最受不了的是……", "我現在最需要的是……"],
-  },
-  {
-    id: "you",
-    label: "你",
-    hint: "對剛才的自己說話",
-    position: "你的位置",
-    starters: ["你已經……", "你會這樣感覺，是因為……", "你不用……", "你可以先……"],
-  },
-  {
-    id: "observer",
-    label: "他 / 她",
-    hint: "從旁觀者角度觀看",
-    position: "他 / 她的位置",
-    starters: ["他正在……", "她其實不是……而是……", "如果從外面看，這件事……", "他 / 她現在可能需要……"],
-  },
-  {
-    id: "iFinal",
-    label: "回到我",
-    hint: "帶著新的理解回來",
-    position: "回到我",
-    starters: ["我現在發現……", "我比較明白……", "我可以先……", "我想對自己說……"],
-  },
-  {
-    id: "action",
-    label: "小行動",
-    hint: "選一件低壓力的下一步",
-    position: "小行動",
-    starters: ["我可以先休息一下", "我明天先做最小的一步", "我可以找人說明狀態", "我先把事情寫下來"],
-  },
-  {
-    id: "summary",
-    label: "整理",
-    hint: "留下這次練習的紀錄",
-    position: "整理紀錄",
-    starters: [],
-  },
-];
+/* i18n helper — safe stub already defined in index.html before this loads */
+function t(key, zh) { return (window.jteT || function(k, z) { return z != null ? z : k; })(key, zh); }
 
-const pageCopy = {
-  topic: {
-    title: "選一件現在願意靠近的事",
-    prompt: "不用選最嚴重的事，選一件你現在願意稍微靠近的事就好。",
-    action: "下一步",
-  },
-  iFirst: {
-    title: "我的位置",
-    prompt: "先不整理，也不修飾。讓真實感受在這一頁被看見。",
-    action: "下一步",
-  },
-  you: {
-    title: "你的位置",
-    prompt: "想像剛才的自己坐在你面前，請用「你」對他說話。",
-    action: "下一步",
-  },
-  observer: {
-    title: "他 / 她的位置",
-    prompt: "往後退一步，像旁觀者一樣觀看這個人正在經歷什麼。",
-    action: "下一步",
-  },
-  iFinal: {
-    title: "回到我",
-    prompt: "這一次的我，已經看過你和他 / 她。請帶著新的理解回來。",
-    action: "下一步",
-  },
-  action: {
-    title: "可以先做的一件小事",
-    prompt: "這個行動不需要解決整件事，只要讓你往照顧自己靠近一點點。",
-    action: "下一步",
-  },
-  summary: {
-    title: "完整位移紀錄",
-    prompt: "從我、你、他 / 她，再回到我。這一頁是剛才移動過程留下的痕跡。",
-    action: "已完成",
-  },
-};
+/* steps() — called live so label/hint/position/starters reflect current language */
+function steps() {
+  return [
+    {
+      id: "topic",
+      label: t("step_label_topic", "主題"),
+      hint: t("step_hint_topic", "選一件現在願意靠近的事"),
+      position: t("step_topic_position", "選擇主題"),
+      starters: [
+        t("starter_topic_0", "最近讓我卡住的是……"),
+        t("starter_topic_1", "我想整理的是……"),
+        t("starter_topic_2", "如果一句話說，是……"),
+      ],
+    },
+    {
+      id: "iFirst",
+      label: t("step_label_iFirst", "我"),
+      hint: t("step_hint_iFirst", "讓真實感受先被看見"),
+      position: t("step_iFirst_position", "我的位置"),
+      starters: [
+        t("starter_iFirst_0", "我覺得……"),
+        t("starter_iFirst_1", "我其實很……"),
+        t("starter_iFirst_2", "我最受不了的是……"),
+        t("starter_iFirst_3", "我現在最需要的是……"),
+      ],
+    },
+    {
+      id: "you",
+      label: t("step_label_you", "你"),
+      hint: t("step_hint_you", "對剛才的自己說話"),
+      position: t("step_you_position", "你的位置"),
+      starters: [
+        t("starter_you_0", "你已經……"),
+        t("starter_you_1", "你會這樣感覺，是因為……"),
+        t("starter_you_2", "你不用……"),
+        t("starter_you_3", "你可以先……"),
+      ],
+    },
+    {
+      id: "observer",
+      label: t("step_label_observer", "他 / 她"),
+      hint: t("step_hint_observer", "從旁觀者角度觀看"),
+      position: t("step_observer_position", "他 / 她的位置"),
+      starters: [
+        t("starter_observer_0", "他正在……"),
+        t("starter_observer_1", "她其實不是……而是……"),
+        t("starter_observer_2", "如果從外面看，這件事……"),
+        t("starter_observer_3", "他 / 她現在可能需要……"),
+      ],
+    },
+    {
+      id: "iFinal",
+      label: t("step_label_iFinal", "回到我"),
+      hint: t("step_hint_iFinal", "帶著新的理解回來"),
+      position: t("step_iFinal_position", "回到我"),
+      starters: [
+        t("starter_iFinal_0", "我現在發現……"),
+        t("starter_iFinal_1", "我比較明白……"),
+        t("starter_iFinal_2", "我可以先……"),
+        t("starter_iFinal_3", "我想對自己說……"),
+      ],
+    },
+    {
+      id: "action",
+      label: t("step_label_action", "小行動"),
+      hint: t("step_hint_action", "選一件低壓力的下一步"),
+      position: t("step_action_position", "小行動"),
+      starters: [
+        t("starter_action_0", "我可以先休息一下"),
+        t("starter_action_1", "我明天先做最小的一步"),
+        t("starter_action_2", "我可以找人說明狀態"),
+        t("starter_action_3", "我先把事情寫下來"),
+      ],
+    },
+    {
+      id: "summary",
+      label: t("step_label_summary", "整理"),
+      hint: t("step_hint_summary", "留下這次練習的紀錄"),
+      position: t("step_summary_position", "整理紀錄"),
+      starters: [],
+    },
+  ];
+}
+
+/* pageCopy() — called live for current language */
+function pageCopy() {
+  return {
+    topic: {
+      title: t("step_topic_title", "選一件現在願意靠近的事"),
+      prompt: t("step_topic_prompt", "不用選最嚴重的事，選一件你現在願意稍微靠近的事就好。"),
+      action: t("btn_next", "下一步"),
+    },
+    iFirst: {
+      title: t("step_iFirst_title", "我的位置"),
+      prompt: t("step_iFirst_prompt", "先不整理，也不修飾。讓真實感受在這一頁被看見。"),
+      action: t("btn_next", "下一步"),
+    },
+    you: {
+      title: t("step_you_title", "你的位置"),
+      prompt: t("step_you_prompt", "想像剛才的自己坐在你面前，請用「你」對他說話。"),
+      action: t("btn_next", "下一步"),
+    },
+    observer: {
+      title: t("step_observer_title", "他 / 她的位置"),
+      prompt: t("step_observer_prompt", "往後退一步，像旁觀者一樣觀看這個人正在經歷什麼。"),
+      action: t("btn_next", "下一步"),
+    },
+    iFinal: {
+      title: t("step_iFinal_title", "回到我"),
+      prompt: t("step_iFinal_prompt", "這一次的我，已經看過你和他 / 她。請帶著新的理解回來。"),
+      action: t("btn_next", "下一步"),
+    },
+    action: {
+      title: t("step_action_title", "可以先做的一件小事"),
+      prompt: t("step_action_prompt", "這個行動不需要解決整件事，只要讓你往照顧自己靠近一點點。"),
+      action: t("btn_next", "下一步"),
+    },
+    summary: {
+      title: t("step_summary_title", "完整位移紀錄"),
+      prompt: t("step_summary_prompt", "從我、你、他 / 她，再回到我。這一頁是剛才移動過程留下的痕跡。"),
+      action: t("btn_done", "已完成"),
+    },
+  };
+}
 
 const emotionWords = [
   "累",
@@ -272,7 +310,7 @@ function createInitialState() {
         kind: "system",
         step: "topic",
         text:
-          "我們會用「我、你、他 / 她」的方式，陪你看見現在的狀態。\n\n這不是要你立刻解決問題，而是先讓你從不同角度靠近自己。\n\n你可以不用寫得完整，也不用寫得漂亮，只要真實就好。\n\n請先選一件最近讓你卡住、煩惱、疲憊、委屈、焦慮或想逃避的事情。若要用一句話描述，會是什麼？",
+          t("sys_intro", "我們會用「我、你、他 / 她」的方式，陪你看見現在的狀態。\n\n這不是要你立刻解決問題，而是先讓你從不同角度靠近自己。\n\n你可以不用寫得完整，也不用寫得漂亮，只要真實就好。\n\n請先選一件最近讓你卡住、煩惱、疲憊、委屈、焦慮或想逃避的事情。若要用一句話描述，會是什麼？"),
       },
     ],
   };
@@ -381,16 +419,26 @@ function addMonths(monthKey, amount) {
   return getMonthKey(date);
 }
 
+function currentLocale() {
+  const lang = (typeof window.jteLang === "function" ? window.jteLang() : null) || "zh";
+  if (lang === "en") return "en";
+  if (lang === "ja") return "ja-JP";
+  return "zh-Hant";
+}
+
 function formatMonthLabel(monthKey) {
   const [year, month] = monthKey.split("-").map(Number);
   if (!year || !month) return "";
+  const locale = currentLocale();
+  if (locale === "en") return new Date(year, month - 1, 1).toLocaleDateString("en", { year: "numeric", month: "long" });
+  if (locale === "ja-JP") return `${year}年${month}月`;
   return `${year} 年 ${month} 月`;
 }
 
 function formatDateOnly(dateKey) {
   const [year, month, day] = dateKey.split("-").map(Number);
   if (!year || !month || !day) return "";
-  return new Date(year, month - 1, day).toLocaleDateString("zh-Hant", {
+  return new Date(year, month - 1, day).toLocaleDateString(currentLocale(), {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -403,7 +451,7 @@ function recordHasContent(entries = {}) {
 
 function recordTitle(entries = {}) {
   const title = String(entries.topic || "").trim();
-  return title ? shortText(title, 24) : "未命名書寫";
+  return title ? shortText(title, 24) : t("record_untitled", "未命名書寫");
 }
 
 function createRecordFromState(source = state) {
@@ -447,11 +495,11 @@ function migrateCurrentStateToRecords() {
 }
 
 function activeStepIndex() {
-  return steps.findIndex((step) => step.id === state.activeStep);
+  return steps().findIndex((step) => step.id === state.activeStep);
 }
 
 function getStep(id = state.activeStep) {
-  return steps.find((step) => step.id === id) || steps[0];
+  return steps().find((step) => step.id === id) || steps()[0];
 }
 
 function addMessage(message) {
@@ -483,8 +531,8 @@ function fillInputFromEntry() {
 }
 
 function clearDownstreamFrom(stepId) {
-  const index = steps.findIndex((step) => step.id === stepId);
-  const downstreamIds = steps.slice(index + 1).map((step) => step.id);
+  const index = steps().findIndex((step) => step.id === stepId);
+  const downstreamIds = steps().slice(index + 1).map((step) => step.id);
   for (const id of downstreamIds) {
     if (id in state.entries) state.entries[id] = "";
   }
@@ -511,7 +559,7 @@ function goPreviousStep() {
     return;
   }
 
-  const previous = steps[activeStepIndex() - 1];
+  const previous = steps()[activeStepIndex() - 1];
   if (!previous) return;
   state.completed = false;
   state.summaryMarkdown = "";
@@ -619,58 +667,62 @@ function nudgeForI(text) {
   state.analysis.emotions = unique([...state.analysis.emotions, ...emotions]);
   state.analysis.needs = unique([...state.analysis.needs, ...needs]);
 
+  const sep = t("__list_sep", "、");
   const emotionLine = emotions.length
-    ? `這裡有幾個很明顯的感受：${emotions.join("、")}。`
-    : "我先把它理解成：你正在承受一個不太容易單靠意志力撐過去的狀態。";
+    ? `${t("nudge_iFirst_emotion_found", "這裡有幾個很明顯的感受：")}${emotions.join(sep)}。`
+    : t("nudge_iFirst_emotion_none", "我先把它理解成：你正在承受一個不太容易單靠意志力撐過去的狀態。");
   const needLine = needs.length
-    ? `同時也好像有一個需要被照顧的部分：${needs.join("、")}。`
-    : "也許你現在需要的不是立刻解法，而是先讓這些感受被放在一個比較安全的位置。";
+    ? `${t("nudge_iFirst_need_found", "同時也好像有一個需要被照顧的部分：")}${needs.join(sep)}。`
+    : t("nudge_iFirst_need_none", "也許你現在需要的不是立刻解法，而是先讓這些感受被放在一個比較安全的位置。");
 
-  return `我聽見你把自己放回「我」的位置，讓真實感受先出來。\n\n${emotionLine}\n${needLine}\n\n現在，我們先不要急著解決問題。請你想像剛才那個很累、很卡住的自己，就坐在你面前。\n\n接下來請用「你」開頭，對他說幾句話。`;
+  return `${t("nudge_iFirst_opening", "我聽見你把自己放回「我」的位置，讓真實感受先出來。\n\n")}${emotionLine}\n${needLine}${t("nudge_iFirst_closing", "\n\n現在，我們先不要急著解決問題。請你想像剛才那個很累、很卡住的自己，就坐在你面前。\n\n接下來請用「你」開頭，對他說幾句話。")}`;
 }
 
 function nudgeForYou(text) {
   const supports = detectWords(text, supportWords);
   state.analysis.supports = unique([...state.analysis.supports, ...supports]);
 
+  const sep = t("__list_sep", "、");
   const supportLine = supports.length
-    ? `我看到裡面有一些支持自己的聲音：${supports.join("、")}。`
-    : "這一步已經在練習把自責稍微放下，讓自己有機會被自己回應。";
+    ? `${t("nudge_you_support_found", "我看到裡面有一些支持自己的聲音：")}${supports.join(sep)}。`
+    : t("nudge_you_support_none", "這一步已經在練習把自責稍微放下，讓自己有機會被自己回應。");
 
-  return `這裡出現了一個重要的轉變：你不只是站在痛苦裡，也開始能夠對痛苦中的自己說話。\n\n${supportLine}\n\n現在我們再往後退一步。請你想像自己像一位旁觀者，正在看一個人經歷這件事。\n\n這個人就是剛才的你。請用「他」或「她」開頭，描述這個人正在經歷什麼。`;
+  return `${t("nudge_you_opening", "這裡出現了一個重要的轉變：你不只是站在痛苦裡，也開始能夠對痛苦中的自己說話。\n\n")}${supportLine}${t("nudge_you_closing", "\n\n現在我們再往後退一步。請你想像自己像一位旁觀者，正在看一個人經歷這件事。\n\n這個人就是剛才的你。請用「他」或「她」開頭，描述這個人正在經歷什麼。")}`;
 }
 
 function nudgeForObserver(text) {
   const contexts = detectWords(text, contextWords);
   state.analysis.contexts = unique([...state.analysis.contexts, ...contexts]);
 
+  const sep = t("__list_sep", "、");
   const contextLine = contexts.length
-    ? `從旁觀者位置看，這件事不只在你身上，也牽涉到這些脈絡：${contexts.join("、")}。`
-    : "從旁觀者位置看，這件事好像不只是個人能力問題，也包含長時間累積的壓力與限制。";
+    ? `${t("nudge_observer_opening_found", "從旁觀者位置看，這件事不只在你身上，也牽涉到這些脈絡：")}${contexts.join(sep)}。`
+    : t("nudge_observer_opening_none", "從旁觀者位置看，這件事好像不只是個人能力問題，也包含長時間累積的壓力與限制。");
 
-  return `${contextLine}\n\n他 / 她不是只等於眼前的困境，也不是只能用責備來理解。\n\n現在，請你慢慢回到「我」的位置。但這一次的「我」，已經看過剛才的「你」和「他 / 她」。\n\n請重新用「我」來寫幾句話：我現在發現什麼？我比較明白什麼？我想怎麼照顧自己？`;
+  return `${contextLine}${t("nudge_observer_closing", "\n\n他 / 她不是只等於眼前的困境，也不是只能用責備來理解。\n\n現在，請你慢慢回到「我」的位置。但這一次的「我」，已經看過剛才的「你」和「他 / 她」。\n\n請重新用「我」來寫幾句話：我現在發現什麼？我比較明白什麼？我想怎麼照顧自己？")}`;
 }
 
 function nudgeForIFinal(text) {
   const actions = detectWords(text, actionWords);
   state.analysis.actions = unique([...state.analysis.actions, ...actions]);
 
+  const sep = t("__list_sep", "、");
   const actionLine = actions.length
-    ? `我也看到一些可以落地的方向：${actions.join("、")}。`
-    : "現在先不用把問題全部解決，只要找一個很小、低壓力、今天或明天可以做的動作就好。";
+    ? `${t("nudge_iFinal_action_found", "我也看到一些可以落地的方向：")}${actions.join(sep)}。`
+    : t("nudge_iFinal_action_none", "現在先不用把問題全部解決，只要找一個很小、低壓力、今天或明天可以做的動作就好。");
 
-  return `你剛剛的「我」和一開始的「我」已經不太一樣了。\n\n一開始比較像是被情緒困住，現在則多了一些理解與照顧自己的聲音。\n\n${actionLine}\n\n如果只選一件很小的事，作為接下來照顧自己的行動，你想先做什麼？`;
+  return `${t("nudge_iFinal_opening", "你剛剛的「我」和一開始的「我」已經不太一樣了。\n\n一開始比較像是被情緒困住，現在則多了一些理解與照顧自己的聲音。\n\n")}${actionLine}${t("nudge_iFinal_closing", "\n\n如果只選一件很小的事，作為接下來照顧自己的行動，你想先做什麼？")}`;
 }
 
 function nudgeForAction(text) {
   const actions = detectWords(text, actionWords);
   state.analysis.actions = unique([...state.analysis.actions, ...actions]);
   state.completed = true;
-  return "今天不是要你把問題完全解決，而是陪你從一個被困住的位置，稍微移動到可以看見自己的地方。\n\n這個移動本身，就是一種開始。\n\n我已經幫你整理成一份紀錄。";
+  return t("nudge_action_done", "今天不是要你把問題完全解決，而是陪你從一個被困住的位置，稍微移動到可以看見自己的地方。\n\n這個移動本身，就是一種開始。\n\n我已經幫你整理成一份紀錄。");
 }
 
 function safetyMessage() {
-  return "我很重視你現在的安全。\n\n這個狀態已經不適合只靠書寫練習處理。請你現在先聯絡身邊可信任的人，或立即尋求當地緊急服務、心理諮商或醫療協助。\n\n如果你願意，也可以先做一件最小的安全動作：離開可能傷害自己的物品或場所，並告訴一個可以立刻聯絡的人：「我現在不安全，需要你陪我。」";
+  return t("crisis_message", "我很重視你現在的安全。\n\n這個狀態已經不適合只靠書寫練習處理。請你現在先聯絡身邊可信任的人，或立即尋求當地緊急服務、心理諮商或醫療協助。\n\n如果你願意，也可以先做一件最小的安全動作：離開可能傷害自己的物品或場所，並告訴一個可以立刻聯絡的人：「我現在不安全，需要你陪我。」");
 }
 
 function buildTransition(text) {
@@ -695,7 +747,7 @@ function buildTransition(text) {
         step: "iFirst",
         replyStep: "iFirst",
         fallbackText:
-          `好，我們就先把「${shortText(text, 54)}」放在這裡。\n\n現在請你用「我」開頭，寫下你在這件事裡的感受。\n\n你可以從這些句子開始：\n\n我覺得……\n我其實很……\n我最受不了的是……\n我不敢說的是……\n我現在最需要的是……`,
+          `${t("nudge_topic_prefix", "好，我們就先把「")}${shortText(text, 54)}${t("nudge_topic_suffix", "」放在這裡。\n\n現在請你用「我」開頭，寫下你在這件事裡的感受。\n\n你可以從這些句子開始：\n\n我覺得……\n我其實很……\n我最受不了的是……\n我不敢說的是……\n我現在最需要的是……")}`,
       };
     case "iFirst":
       state.entries.iFirst = text;
@@ -754,7 +806,7 @@ function buildTransition(text) {
         toStep: "summary",
         step: "summary",
         replyStep: "summary",
-        fallbackText: "這一輪練習已經完成。你可以複製或下載紀錄，也可以按左上方的重新開始，開一輪新的整理。",
+        fallbackText: t("nudge_summary_already_done", "這一輪練習已經完成。你可以複製或下載紀錄，也可以按左上方的重新開始，開一輪新的整理。"),
         skipLlm: true,
       };
     default:
@@ -859,7 +911,7 @@ function extractSelfLine(entries = state.entries) {
 function formatDateTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString("zh-Hant", {
+  return date.toLocaleString(currentLocale(), {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -870,8 +922,9 @@ function formatDateTime(value) {
 
 function renderSteps() {
   const index = activeStepIndex();
+  const stepsArr = steps();
   if (stepList) {
-    stepList.innerHTML = steps
+    stepList.innerHTML = stepsArr
       .map((step, stepIndex) => {
         const classes = ["step-item"];
         if (stepIndex === index) classes.push("is-active");
@@ -888,8 +941,8 @@ function renderSteps() {
       .join("");
   }
 
-  currentPosition.textContent = state.completed ? "整理完成" : getStep().position;
-  const percent = state.completed ? 100 : Math.max(6, (index / (steps.length - 1)) * 100);
+  currentPosition.textContent = state.completed ? t("step_completed_position", "整理完成") : getStep().position;
+  const percent = state.completed ? 100 : Math.max(6, (index / (stepsArr.length - 1)) * 100);
   progressFill.style.width = `${percent}%`;
 }
 
@@ -925,7 +978,7 @@ function visibleMessages() {
 function renderMessage(message) {
   const roleClass = message.role === "user" ? "user" : "assistant";
   const kindClass = message.kind ? ` ${message.kind}` : "";
-  const label = message.role === "user" ? "你" : message.kind === "report" ? "整理紀錄" : "引導";
+  const label = message.role === "user" ? t("msg_label_user", "你") : message.kind === "report" ? t("msg_label_report", "整理紀錄") : t("msg_label_guide", "引導");
   const step = getStep(message.step);
 
   if (message.kind === "report") {
@@ -965,7 +1018,7 @@ function renderReportBody(body) {
     .filter(Boolean);
 
   if (!normalized.length) {
-    return `<p class="report-empty">尚未填寫</p>`;
+    return `<p class="report-empty">${escapeHtml(t("report_empty_fallback", "尚未填寫"))}</p>`;
   }
 
   const blocks = [];
@@ -1031,7 +1084,8 @@ function escapeHtml(value) {
 }
 
 function render() {
-  const activeCopy = pageCopy[state.activeStep] || pageCopy.topic;
+  const pc = pageCopy();
+  const activeCopy = pc[state.activeStep] || pc.topic;
   const isSummary = state.completed || state.activeStep === "summary";
   const isGuideView = state.started && (state.view === "guide" || isSummary);
   const isWriteView = state.started && state.view === "write" && !isSummary;
@@ -1064,15 +1118,17 @@ function render() {
     guidePrevButton.disabled = isSending;
   }
   if (isSending) {
-    messageInput.placeholder = "正在整理下一頁引導...";
+    messageInput.placeholder = t("input_placeholder_sending", "正在整理下一頁引導...");
   } else if (isSummary) {
-    messageInput.placeholder = "這一輪已完成。可以下載紀錄，或重新開始。";
+    messageInput.placeholder = t("input_placeholder_done", "這一輪已完成。可以下載紀錄，或重新開始。");
   } else {
-    messageInput.placeholder = "在這裡寫下現在浮現的話...";
+    messageInput.placeholder = t("input_placeholder", "在這裡寫下現在浮現的話...");
   }
   renderRecordsPanel();
   saveState();
 }
+/* expose for jteI18nApply re-render */
+window.render = render;
 
 function openRecordsPanel(mode = "list", selectedId = "") {
   records = loadRecords();
@@ -1124,8 +1180,8 @@ function renderRecordsList() {
   const privacyBar = `<div id="ws-privacy-bar" class="ws-privacy-bar"></div>`;
   if (!records.length) {
     return `${privacyBar}<div class="records-empty">
-      <p>還沒有書寫記錄。</p>
-      <span>完成一輪心理位移後，這裡會自動保存。</span>
+      <p>${escapeHtml(t("records_empty_title", "還沒有書寫記錄。"))}</p>
+      <span>${escapeHtml(t("records_empty_hint", "完成一輪心理位移後，這裡會自動保存。"))}</span>
     </div>`;
   }
 
@@ -1134,22 +1190,22 @@ function renderRecordsList() {
     ? matchingRecords.filter((record) => recordDateKey(record) === recordsPanelState.selectedDate)
     : matchingRecords;
   const resultTitle = recordsPanelState.selectedDate
-    ? `${formatDateOnly(recordsPanelState.selectedDate)} 的記錄`
+    ? `${formatDateOnly(recordsPanelState.selectedDate)} ${t("records_date_suffix", "的記錄")}`
     : recordsPanelState.query
-      ? "搜尋結果"
-      : "全部記錄";
+      ? t("records_result_search", "搜尋結果")
+      : t("records_result_all", "全部記錄");
 
   return `${privacyBar}${renderRecordsFinder(matchingRecords)}
   <div class="records-result-head">
     <strong>${escapeHtml(resultTitle)}</strong>
-    <span>${shownRecords.length} 筆</span>
+    <span>${shownRecords.length} ${escapeHtml(t("records_count_unit", "筆"))}</span>
   </div>
   ${
     shownRecords.length
       ? `<div class="records-list">${shownRecords.map(renderRecordItem).join("")}</div>`
       : `<div class="records-empty compact">
-        <p>找不到符合的記錄。</p>
-        <span>可以換個關鍵字，或回到全部日期查看。</span>
+        <p>${escapeHtml(t("records_empty_compact_title", "找不到符合的記錄。"))}</p>
+        <span>${escapeHtml(t("records_empty_compact_hint", "可以換個關鍵字，或回到全部日期查看。"))}</span>
       </div>`
   }`;
 }
@@ -1157,19 +1213,19 @@ function renderRecordsList() {
 function renderRecordsFinder(matchingRecords) {
   const query = recordsPanelState.query || "";
   const clearSearchButton = query
-    ? `<button class="mini-button" type="button" data-record-action="clear-search">清除搜尋</button>`
+    ? `<button class="mini-button" type="button" data-record-action="clear-search">${escapeHtml(t("btn_clear_search", "清除搜尋"))}</button>`
     : "";
   const clearDateButton = recordsPanelState.selectedDate
-    ? `<button class="mini-button" type="button" data-record-action="clear-date">全部日期</button>`
+    ? `<button class="mini-button" type="button" data-record-action="clear-date">${escapeHtml(t("btn_all_dates", "全部日期"))}</button>`
     : "";
 
   return `<div class="records-finder">
     <label class="records-search">
-      <span class="sr-only">搜尋書寫記錄</span>
+      <span class="sr-only">${escapeHtml(t("records_search_sr", "搜尋書寫記錄"))}</span>
       <input
         type="search"
         data-record-search
-        placeholder="搜尋主題、內容或日期..."
+        placeholder="${escapeHtml(t("records_search_placeholder", "搜尋主題、內容或日期..."))}"
         value="${escapeHtml(query)}"
         autocomplete="off"
       />
@@ -1216,14 +1272,14 @@ function renderRecordsCalendar(matchingRecords) {
     </button>`;
   }).join("");
 
-  return `<section class="records-calendar" aria-label="書寫記錄月曆">
+  return `<section class="records-calendar" aria-label="${escapeHtml(t("records_calendar_aria", "書寫記錄月曆"))}">
     <div class="calendar-nav">
-      <button class="mini-button" type="button" data-record-action="prev-month" aria-label="上一個月">←</button>
+      <button class="mini-button" type="button" data-record-action="prev-month" aria-label="${escapeHtml(t("btn_prev_month", "上一個月"))}">←</button>
       <strong>${escapeHtml(formatMonthLabel(monthKey))}</strong>
-      <button class="mini-button" type="button" data-record-action="next-month" aria-label="下一個月">→</button>
+      <button class="mini-button" type="button" data-record-action="next-month" aria-label="${escapeHtml(t("btn_next_month", "下一個月"))}">→</button>
     </div>
     <div class="calendar-weekdays" aria-hidden="true">
-      <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+      <span>${escapeHtml(t("cal_sun", "日"))}</span><span>${escapeHtml(t("cal_mon", "一"))}</span><span>${escapeHtml(t("cal_tue", "二"))}</span><span>${escapeHtml(t("cal_wed", "三"))}</span><span>${escapeHtml(t("cal_thu", "四"))}</span><span>${escapeHtml(t("cal_fri", "五"))}</span><span>${escapeHtml(t("cal_sat", "六"))}</span>
     </div>
     <div class="calendar-grid">
       ${dayButtons}
@@ -1254,12 +1310,12 @@ function renderRecordItem(record) {
     <div class="record-main">
       <time>${escapeHtml(formatDateTime(record.updatedAt || record.createdAt))}</time>
       <h3>${escapeHtml(record.title)}</h3>
-      <p>${escapeHtml(shortText(previewSource || "這一筆書寫還在安靜地等你回來。", 88))}</p>
+      <p>${escapeHtml(shortText(previewSource || t("record_preview_fallback", "這一筆書寫還在安靜地等你回來。"), 88))}</p>
     </div>
     <div class="record-actions">
-      <button class="mini-button" type="button" data-record-action="view" data-record-id="${escapeHtml(record.id)}">翻閱</button>
-      <button class="mini-button" type="button" data-record-action="edit" data-record-id="${escapeHtml(record.id)}">編輯</button>
-      <button class="mini-button danger" type="button" data-record-action="delete" data-record-id="${escapeHtml(record.id)}">刪除</button>
+      <button class="mini-button" type="button" data-record-action="view" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_view", "翻閱"))}</button>
+      <button class="mini-button" type="button" data-record-action="edit" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_edit", "編輯"))}</button>
+      <button class="mini-button danger" type="button" data-record-action="delete" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_delete", "刪除"))}</button>
     </div>
   </article>`;
 }
@@ -1267,9 +1323,9 @@ function renderRecordItem(record) {
 function renderRecordDetail(record) {
   const markdown = record.summaryMarkdown || buildMarkdownReportFor(record);
   return `<div class="records-toolbar">
-    <button class="mini-button" type="button" data-record-action="list">返回列表</button>
-    <button class="mini-button" type="button" data-record-action="edit" data-record-id="${escapeHtml(record.id)}">編輯</button>
-    <button class="mini-button danger" type="button" data-record-action="delete" data-record-id="${escapeHtml(record.id)}">刪除</button>
+    <button class="mini-button" type="button" data-record-action="list">${escapeHtml(t("btn_back_to_list", "返回列表"))}</button>
+    <button class="mini-button" type="button" data-record-action="edit" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_edit", "編輯"))}</button>
+    <button class="mini-button danger" type="button" data-record-action="delete" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_delete", "刪除"))}</button>
   </div>
   <article class="record-detail">
     <div class="record-detail-head">
@@ -1282,16 +1338,16 @@ function renderRecordDetail(record) {
 
 function renderRecordEditor(record) {
   return `<div class="records-toolbar">
-    <button class="mini-button" type="button" data-record-action="detail" data-record-id="${escapeHtml(record.id)}">取消</button>
-    <button class="mini-button primary" type="button" data-record-action="save-edit" data-record-id="${escapeHtml(record.id)}">保存修改</button>
+    <button class="mini-button" type="button" data-record-action="detail" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_cancel", "取消"))}</button>
+    <button class="mini-button primary" type="button" data-record-action="save-edit" data-record-id="${escapeHtml(record.id)}">${escapeHtml(t("btn_save_edit", "保存修改"))}</button>
   </div>
   <form class="record-editor" data-record-id="${escapeHtml(record.id)}">
-    ${renderRecordField("topic", "主題", "寫下這次想整理的事", record.entries.topic)}
-    ${renderRecordField("iFirst", "我的位置", "我在這件事裡的感受", record.entries.iFirst)}
-    ${renderRecordField("you", "你的位置", "對剛才的自己說話", record.entries.you)}
-    ${renderRecordField("observer", "他 / 她的位置", "從旁觀者角度觀看", record.entries.observer)}
-    ${renderRecordField("iFinal", "回到我", "帶著新的理解回來", record.entries.iFinal)}
-    ${renderRecordField("action", "小行動", "可以先做的一件小事", record.entries.action)}
+    ${renderRecordField("topic", t("field_topic_label", "主題"), t("field_topic_hint", "寫下這次想整理的事"), record.entries.topic)}
+    ${renderRecordField("iFirst", t("field_iFirst_label", "我的位置"), t("field_iFirst_hint", "我在這件事裡的感受"), record.entries.iFirst)}
+    ${renderRecordField("you", t("field_you_label", "你的位置"), t("field_you_hint", "對剛才的自己說話"), record.entries.you)}
+    ${renderRecordField("observer", t("field_observer_label", "他 / 她的位置"), t("field_observer_hint", "從旁觀者角度觀看"), record.entries.observer)}
+    ${renderRecordField("iFinal", t("field_iFinal_label", "回到我"), t("field_iFinal_hint", "帶著新的理解回來"), record.entries.iFinal)}
+    ${renderRecordField("action", t("field_action_label", "小行動"), t("field_action_hint", "可以先做的一件小事"), record.entries.action)}
   </form>`;
 }
 
@@ -1384,7 +1440,7 @@ function saveRecordEdit(id) {
   });
 
   if (!recordHasContent(nextEntries)) {
-    window.alert("這筆記錄目前沒有內容，請先留下至少一段文字。");
+    window.alert(t("alert_empty_record", "這筆記錄目前沒有內容，請先留下至少一段文字。"));
     return;
   }
 
@@ -1419,7 +1475,7 @@ function syncCurrentStateWithRecord(record) {
 function deleteRecord(id) {
   const record = records.find((item) => item.id === id);
   if (!record) return;
-  const confirmed = window.confirm(`要刪除「${record.title}」這筆書寫記錄嗎？`);
+  const confirmed = window.confirm(t("confirm_delete_prefix", "要刪除「") + record.title + t("confirm_delete_suffix", "」這筆書寫記錄嗎？"));
   if (!confirmed) return;
   records = records.filter((item) => item.id !== id);
   saveRecords();
@@ -1525,7 +1581,7 @@ document.addEventListener("keydown", (event) => {
 });
 
 resetButton.addEventListener("click", () => {
-  const confirmed = window.confirm("要清除目前這一輪練習，重新開始嗎？");
+  const confirmed = window.confirm(t("confirm_reset", "要清除目前這一輪練習，重新開始嗎？"));
   if (!confirmed) return;
   state = createInitialState();
   state.view = "guide";
@@ -1551,12 +1607,12 @@ copySummaryButton.addEventListener("click", async () => {
   const markdown = state.summaryMarkdown || buildMarkdownReport();
   try {
     await navigator.clipboard.writeText(markdown);
-    copySummaryButton.title = "已複製";
+    copySummaryButton.title = t("copy_title_done", "已複製");
     setTimeout(() => {
-      copySummaryButton.title = "複製整理";
+      copySummaryButton.title = t("btn_copy_title", "複製整理");
     }, 1100);
   } catch {
-    window.alert("目前瀏覽器不允許直接複製。你仍可以下載紀錄。");
+    window.alert(t("alert_copy_fail", "目前瀏覽器不允許直接複製。你仍可以下載紀錄。"));
   }
 });
 
@@ -1633,8 +1689,8 @@ window.addEventListener('load',function(){setTimeout(function(){wsInitialSync(0)
 // 動態 🔒 行：誠實反映是否上傳。解鎖才顯示「已加密同步」；其餘一律「只存這台裝置」。
 function wsRefreshPrivacyLine(){
   var el=document.getElementById('ws-privacy-line');if(!el||!window.JtePrivacy)return;
-  if(JtePrivacy.isUnlocked())el.textContent='已加密同步，連我們也解不開';
-  else el.textContent='你的書寫只存在這台裝置，不會上傳';
+  if(JtePrivacy.isUnlocked())el.textContent=t('privacy_encrypted','已加密同步，連我們也解不開');
+  else el.textContent=t('privacy_local','你的書寫只存在這台裝置，不會上傳');
 }
 // 啟用/解鎖/鎖定後統一刷新（拉雲端＋更新行＋重繪狀態列）。
 function wsAfterPrivacyChange(){try{wsSyncFromCloud();}catch(e){}wsRefreshPrivacyLine();wsRenderPrivacyBar();}
@@ -1643,27 +1699,29 @@ function wsRenderPrivacyBar(){
   var box=document.getElementById('ws-privacy-bar');if(!box)return;
   if(!window.JtePrivacy){box.innerHTML='';return;}
   if(!jteEmail()){
-    box.innerHTML='<span class="ws-priv-hint">登入練息場後可開啟跨裝置加密同步</span>';
+    box.innerHTML='<span class="ws-priv-hint">'+t('priv_login_hint','登入練息場後可開啟跨裝置加密同步')+'</span>';
     return;
   }
-  box.innerHTML='<span class="ws-priv-hint">私密同步：檢查中…</span>';
+  box.innerHTML='<span class="ws-priv-hint">'+t('priv_checking','私密同步：檢查中…')+'</span>';
   Promise.resolve(JtePrivacy.isEnabled()).then(function(enabled){
     if(!box.isConnected)return;
     if(!enabled){
-      box.innerHTML='<button type="button" class="ws-priv-btn">🔒 開啟跨裝置加密同步</button>';
+      box.innerHTML='<button type="button" class="ws-priv-btn">'+t('priv_enable_btn','🔒 開啟跨裝置加密同步')+'</button>';
       box.querySelector('.ws-priv-btn').onclick=function(){JtePrivacy.enable().then(wsAfterPrivacyChange).catch(function(){});};
       return;
     }
     if(!JtePrivacy.isUnlocked()){
-      box.innerHTML='<button type="button" class="ws-priv-btn">🔓 解鎖</button> <a href="#" class="ws-priv-link">換密語</a>';
+      box.innerHTML='<button type="button" class="ws-priv-btn">'+t('priv_unlock_btn','🔓 解鎖')+'</button> <a href="#" class="ws-priv-link">'+t('priv_change_passphrase','換密語')+'</a>';
       box.querySelector('.ws-priv-btn').onclick=function(){JtePrivacy.unlock().then(wsAfterPrivacyChange).catch(function(){});};
       box.querySelector('.ws-priv-link').onclick=function(ev){ev.preventDefault();JtePrivacy.changePassphrase().then(wsAfterPrivacyChange).catch(function(){});};
       return;
     }
-    box.innerHTML='<span class="ws-priv-ok">✓ 已加密同步（連我們也解不開）</span> <a href="#" class="ws-priv-link">鎖定</a>';
+    box.innerHTML='<span class="ws-priv-ok">'+t('priv_synced','✓ 已加密同步（連我們也解不開）')+'</span> <a href="#" class="ws-priv-link">'+t('priv_lock','鎖定')+'</a>';
     box.querySelector('.ws-priv-link').onclick=function(ev){ev.preventDefault();JtePrivacy.lock();wsRefreshPrivacyLine();wsRenderPrivacyBar();};
   }).catch(function(){if(box.isConnected)box.innerHTML='';});
 }
+/* expose renderRecordsPanel for jteI18nApply */
+window.renderRecordsPanel = renderRecordsPanel;
 // 進站若已啟用未解鎖→自動提示解鎖一次（旗標防重複），解鎖後同步。
 var _wsAutoUnlockTried=false;
 function wsMaybeAutoUnlock(){

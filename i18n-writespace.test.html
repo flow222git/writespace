@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>writespace i18n test harness</title>
+  <style>
+    body { font-family: monospace; padding: 16px; background: #f8f8f8; }
+    .pass { color: green; }
+    .fail { color: red; font-weight: bold; }
+    pre { background: #eee; padding: 8px; border-radius: 4px; font-size: 12px; white-space: pre-wrap; }
+    #log { margin-top: 12px; }
+  </style>
+</head>
+<body>
+<h2>writespace i18n test harness</h2>
+<p>iframe loads index.html. Tests run after <code>__jteI18nLoaded</code> is detected.</p>
+<div id="log"></div>
+<iframe id="frame" src="./index.html" width="100%" height="400" style="border:1px solid #ccc; margin-top:12px;"></iframe>
+
+<script>
+(function () {
+  var logEl = document.getElementById('log');
+  var frame = document.getElementById('frame');
+  var pass = 0, fail = 0;
+
+  function log(msg, ok) {
+    var el = document.createElement('div');
+    el.className = ok ? 'pass' : 'fail';
+    el.textContent = (ok ? '✓ ' : '✗ ') + msg;
+    logEl.appendChild(el);
+    if (ok) pass++; else fail++;
+  }
+
+  function report() {
+    var pre = document.createElement('pre');
+    pre.textContent = 'DONE pass=' + pass + ' fail=' + fail;
+    logEl.appendChild(pre);
+    document.title = fail ? ('FAIL ' + fail) : 'OK';
+    window.__done = true;
+    try { fetch('/__result', { method: 'POST', body: 'DONE pass=' + pass + ' fail=' + fail }); } catch (e) {}
+  }
+
+  function getBody() {
+    try { return frame.contentDocument && frame.contentDocument.body; } catch(e) { return null; }
+  }
+  function getWin() {
+    try { return frame.contentWindow; } catch(e) { return null; }
+  }
+
+  function runTests() {
+    var win = getWin();
+    var body = getBody();
+    if (!win || !body) { log('Cannot access iframe (cross-origin?)', false); report(); return; }
+
+    /* --- Test 1: __jteI18nLoaded flag --- */
+    log('__jteI18nLoaded is set', !!win.__jteI18nLoaded);
+
+    /* --- Test 2: JTE_I18N dictionary present --- */
+    log('window.JTE_I18N defined', !!(win.JTE_I18N && win.JTE_I18N.en && win.JTE_I18N.ja));
+
+    /* --- Test 3: zh default — known Chinese string in DOM --- */
+    var landingTitle = body.querySelector('#landingTitle');
+    log('zh default: landing title contains 心理位移',
+        !!(landingTitle && landingTitle.textContent.includes('心理位移')));
+
+    /* --- Test 4: #jte-langbar with 3 buttons (injected by engine) --- */
+    var langbar = body.querySelector('#jte-langbar');
+    var langButtons = langbar ? langbar.querySelectorAll('button') : [];
+    log('#jte-langbar exists', !!langbar);
+    log('#jte-langbar has 3 buttons', langButtons.length === 3);
+
+    /* --- Test 5: switch to EN --- */
+    if (win.jteSetLang) {
+      win.jteSetLang('en');
+      // give one tick for DOM update
+      setTimeout(function () {
+        var titleAfterEn = body.querySelector('#landingTitle');
+        log('EN: landing title switches to English', !!(titleAfterEn && !titleAfterEn.textContent.includes('心理位移')));
+        log('EN: JTE_I18N.en.landing_title present', !!(win.JTE_I18N.en.landing_title));
+
+        /* --- Test 6: switch to JA --- */
+        win.jteSetLang('ja');
+        setTimeout(function () {
+          var titleAfterJa = body.querySelector('#landingTitle');
+          log('JA: landing title switches to Japanese', !!(titleAfterJa && win.JTE_I18N.ja.landing_title &&
+              titleAfterJa.textContent.trim() === win.JTE_I18N.ja.landing_title));
+
+          /* --- Test 7: back to zh --- */
+          win.jteSetLang('zh');
+          setTimeout(function () {
+            var titleBackZh = body.querySelector('#landingTitle');
+            log('zh: landing title restored (contains 心理位移)', !!(titleBackZh && titleBackZh.textContent.includes('心理位移')));
+
+            /* --- Test 8: jteI18nApply is a function --- */
+            log('jteI18nApply is a function', typeof win.jteI18nApply === 'function');
+
+            /* --- Test 9: writespace-specific key count sanity --- */
+            var enKeys = Object.keys(win.JTE_I18N.en).length;
+            var jaKeys = Object.keys(win.JTE_I18N.ja).length;
+            log('EN key count ≥ 80 (' + enKeys + ')', enKeys >= 80);
+            log('JA key count ≥ 80 (' + jaKeys + ')', jaKeys >= 80);
+            log('EN and JA have same key count', enKeys === jaKeys);
+
+            /* --- Test 10: safety notice in DOM --- */
+            var safety = body.querySelector('.safety-strip p[data-i18n]');
+            log('safety notice has data-i18n attr', !!safety);
+
+            report();
+          }, 100);
+        }, 100);
+      }, 100);
+    } else {
+      log('jteSetLang function not available (engine may be deferred)', false);
+      log('(skip EN/JA/zh toggle tests)', false);
+      log('jteI18nApply is a function', typeof win.jteI18nApply === 'function');
+      report();
+    }
+  }
+
+  /* Poll for __jteI18nLoaded directly (don't wait for iframe 'load' — external
+     CDNs like Firebase can keep the load event pending in headless). Max ~16s. */
+  var tries = 0;
+  var interval = setInterval(function () {
+    tries++;
+    var win = getWin();
+    if (win && win.__jteI18nLoaded && typeof win.jteSetLang === 'function') {
+      clearInterval(interval);
+      runTests();
+    } else if (tries > 80) {
+      clearInterval(interval);
+      log('Timeout: __jteI18nLoaded never set after ~16s', false);
+      report();
+    }
+  }, 200);
+})();
+</script>
+</body>
+</html>
